@@ -16,6 +16,7 @@ struct DocumentTab
 {
     TabType type = TabType::Query;
     int id = 0;
+    int connectionId = -1;
     std::string title;
     bool open = true;
     bool focusRequested = false;

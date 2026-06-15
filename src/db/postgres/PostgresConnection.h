@@ -17,11 +17,11 @@ public:
 
     bool Connect(const ConnectionConfig& config) override;
     void Disconnect() override;
-    bool IsConnected() const override;
+    [[nodiscard]] bool IsConnected() const override;
 
     QueryResult Execute(const std::string& sql) override;
 
-    const std::string& LastError() const override;
+    [[nodiscard]] const std::string& LastError() const override;
 
 private:
     pg_conn* m_conn = nullptr;

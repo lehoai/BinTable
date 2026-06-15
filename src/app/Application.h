@@ -1,20 +1,15 @@
 #pragma once
 
-#include <future>
-
-#include "db/ConnectionConfig.h"
 #include "db/IConnection.h"
 #include "db/SchemaInfo.h"
 #include "ui/DocumentTab.h"
-#include <memory>
 #include <string>
 #include <vector>
 
+#include "db/ConnectionManager.h"
+#include "ui/NewConnectionPopup.h"
+
 namespace app {
-    struct TestConnectionResult {
-        bool success = false;
-        std::string message;
-    };
 
     class Application {
     public:
@@ -23,13 +18,11 @@ namespace app {
         void RenderUI();
 
     private:
-        void Connect();
-
-        void Disconnect();
-
         void RefreshSchema();
 
-        void LoadTableColumns(db::TableInfo &table) const;
+        db::ConnectionSession* ActiveSession();;
+
+        static void LoadTableColumns(db::IConnection &conn, db::TableInfo &table);
 
         void DrawToolbar();
 
@@ -37,29 +30,23 @@ namespace app {
 
         void DrawSchemaPanel() const;
 
-        void DrawConnectionPopup();
-
         void AddQueryTab();
 
         void OpenTableTab(const std::string &schemaName, const std::string &tableName);
 
-        void RunQueryTab(ui::DocumentTab &tab) const;
+        void RunQueryTab(ui::DocumentTab &tab);
 
-        void RunTableTab(ui::DocumentTab &tab) const;
+        void RunTableTab(ui::DocumentTab &tab);
 
-        std::unique_ptr<db::IConnection> m_connection;
-        db::ConnectionConfig m_connectionConfig;
-        std::string m_statusMessage;
-        bool m_showConnectionPopup = false;
+        db::ConnectionManager m_connections;
+        int m_activeSessionId = -1;
 
-        std::vector<db::SchemaInfo> m_schemas;
+        ui::NewConnectionPopup m_connectionPopup;
+
         std::string m_selectedSchema;
         std::string m_selectedTable;
 
         std::vector<ui::DocumentTab> m_tabs;
         int m_nextTabId = 1;
-
-        bool m_isConnecting = false;
-        std::future<TestConnectionResult> m_future;
     };
 } // namespace app

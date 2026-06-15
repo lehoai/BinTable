@@ -63,7 +63,7 @@ void DrawTableViewTab(DocumentTab& tab, bool canRun, const std::function<void(Do
 
 } // namespace
 
-void DrawDocumentTabs(std::vector<DocumentTab>& tabs, bool canRun,
+void DrawDocumentTabs(std::vector<DocumentTab>& tabs, const bool canRun,
     const std::function<void(DocumentTab&)>& onRunQuery,
     const std::function<void(DocumentTab&)>& onRefreshTable,
     const std::function<void()>& onNewQueryTab)

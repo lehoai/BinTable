@@ -1,14 +1,10 @@
 #include "imgui.h"
-#include "imgui_impl_glfw.h"
+#include "imgui_impl_sdl3.h"
 #include "imgui_impl_opengl3.h"
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_opengl.h>
 #include <cstdio>
-#include <GLFW/glfw3.h>
-
 #include "app/Application.h"
-
-static void glfw_error_callback(int error, const char *description) {
-    fprintf(stderr, "GLFW Error %d: %s\n", error, description);
-}
 
 // Rebuild the style from scratch and re-apply DPI scaling, so the UI matches whichever
 // monitor the window currently lives on (handles dragging the window between displays
@@ -22,53 +18,48 @@ static void ApplyDpiScale(const float scale) {
     // ImGuiStyle& guiStyle = ImGui::GetStyle();
     // guiStyle.Colors[ImGuiCol_Button] = ImVec4(0.137, 0.149, 0.176, 1.0);
 
+    style.FontSizeBase = 14.0f;
     style.ScaleAllSizes(scale);
     style.FontScaleDpi = scale;
 }
 
-static void glfw_content_scale_callback(GLFWwindow *, float xscale, float) {
-    ApplyDpiScale(xscale);
-}
-
 static void SetupFonts(const ImGuiIO &io) {
-    static ImVector<ImWchar> mainRanges;
-    ImFontGlyphRangesBuilder b;
-    b.AddRanges(io.Fonts->GetGlyphRangesDefault());
-    b.AddRanges(io.Fonts->GetGlyphRangesVietnamese());
-    b.BuildRanges(&mainRanges);
+    ImGuiStyle &style = ImGui::GetStyle();
+    style.FontSizeBase = 14.0f;
 
-    const ImFont* primary = io.Fonts->AddFontFromFileTTF("assets/fonts/DejaVuSansMono.ttf", 14.0f, nullptr, mainRanges.Data);
+    // main font
+    const ImFont *primary = io.Fonts->AddFontFromFileTTF("assets/fonts/DejaVuSansMono.ttf");
     IM_ASSERT(primary != nullptr && "DejaVu font not found");
 
     ImFontConfig cfg;
     cfg.MergeMode = true;
-    const ImFont* jp = io.Fonts->AddFontFromFileTTF("assets/fonts/NotoMonoJP-subset.ttf", 18.0f, &cfg, io.Fonts->GetGlyphRangesJapanese());
+    ImFont *jp = io.Fonts->AddFontFromFileTTF("assets/fonts/NotoMonoJP-subset.ttf", 0.0f, &cfg);
     IM_ASSERT(jp != nullptr && "Noto font not found");
-
-    io.Fonts->Build();
 }
 
 int main(int, char **) {
-    glfwSetErrorCallback(glfw_error_callback);
-    if (!glfwInit())
-        return 1;
+    if (!SDL_Init(SDL_INIT_VIDEO)) {
+        fprintf(stderr, "Unable to initialize SDL: %s\n", SDL_GetError());
+        return -1;
+    }
 
     // GL 3.3 + GLSL 330
     const auto glsl_version = "#version 330";
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-#ifdef __APPLE__
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
     // Create window with graphics context
-    glfwWindowHint(GLFW_MAXIMIZED, GL_TRUE);
-    GLFWwindow *window = glfwCreateWindow(1280, 800, "amgui", nullptr, nullptr);
+    SDL_WindowFlags window_flags =
+            SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_MAXIMIZED | SDL_WINDOW_HIGH_PIXEL_DENSITY;
+    SDL_Window *window = SDL_CreateWindow("BinTable", 1280, 800, window_flags);
     if (window == nullptr)
         return 1;
-    glfwMakeContextCurrent(window);
-    glfwSwapInterval(1); // Enable vsync
+
+    SDL_GLContext gl_context = SDL_GL_CreateContext(window);
+    SDL_GL_MakeCurrent(window, gl_context);
+    SDL_GL_SetSwapInterval(1);
+    SDL_ShowWindow(window);
 
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
@@ -78,7 +69,7 @@ int main(int, char **) {
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
     // Setup Platform/Renderer backends
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplSDL3_InitForOpenGL(window, gl_context);
     ImGui_ImplOpenGL3_Init(glsl_version);
 
     SetupFonts(io);
@@ -90,23 +81,31 @@ int main(int, char **) {
     // sizes while keeping the same distinctive look. The content-scale callback keeps this in
     // sync if the window is later dragged to a display with a different scale factor.
     // NOTE: must be called after ImGui_ImplGlfw_InitForOpenGL so the window->context map is populated.
-    ApplyDpiScale(ImGui_ImplGlfw_GetContentScaleForWindow(window));
-    glfwSetWindowContentScaleCallback(window, glfw_content_scale_callback);
+    ApplyDpiScale(SDL_GetWindowDisplayScale(window));
 
     app::Application application;
 
     // Main loop
-    while (!glfwWindowShouldClose(window)) {
+    bool done = false;
+    while (!done) {
         // WaitEvents blocks until the next OS event, but ImGui often needs one
         // extra frame to reflect state changes (e.g. a popup closing after a
         // button click).  PostEmptyEvent at the end of the loop guarantees that
         // a second frame always follows immediately, so the UI never appears
         // "stuck" waiting for the user to wiggle the mouse.
-        glfwWaitEvents();
+        SDL_Event event;
+        SDL_WaitEvent(&event);
+
+        do {
+            ImGui_ImplSDL3_ProcessEvent(&event);
+            if (event.type == SDL_EVENT_QUIT) done = true;
+            if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED && event.window.windowID == SDL_GetWindowID(window))
+                done = true;
+        } while (SDL_PollEvent(&event));
 
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
+        ImGui_ImplSDL3_NewFrame();
         ImGui::NewFrame();
 
         application.RenderUI();
@@ -114,27 +113,31 @@ int main(int, char **) {
         // Rendering
         ImGui::Render();
         int display_w, display_h;
-        glfwGetFramebufferSize(window, &display_w, &display_h);
+        SDL_GetWindowSizeInPixels(window, &display_w, &display_h);
         glViewport(0, 0, display_w, display_h);
         glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
         glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-        glfwSwapBuffers(window);
+        SDL_GL_SwapWindow(window);
 
         // Ensure one more frame renders so that ImGui state changes made this
         // frame (popup close, button press, etc.) are actually displayed before
         // we block again on glfwWaitEvents.
-        glfwPostEmptyEvent();
+        SDL_Event wake;
+        SDL_zero(wake);
+        wake.type = SDL_EVENT_USER;
+        SDL_PushEvent(&wake);
     }
 
     // Cleanup
     ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
+    ImGui_ImplSDL3_Shutdown();
     ImGui::DestroyContext();
 
-    glfwDestroyWindow(window);
-    glfwTerminate();
+    SDL_GL_DestroyContext(gl_context);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
 
     return 0;
 }

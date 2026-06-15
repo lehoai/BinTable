@@ -20,17 +20,28 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(imgui)
 
-set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
-set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
+#set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+#set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+#set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+#set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
+#
+#FetchContent_Declare(
+#    glfw
+#    GIT_REPOSITORY https://github.com/glfw/glfw.git
+#    GIT_TAG 3.4
+#)
+#FetchContent_MakeAvailable(glfw)
+
+set(SDL_SHARED ON CACHE BOOL "" FORCE)
+set(SDL_STATIC OFF CACHE BOOL "" FORCE)
+set(SDL_TEST OFF CACHE BOOL "" FORCE)
 
 FetchContent_Declare(
-    glfw
-    GIT_REPOSITORY https://github.com/glfw/glfw.git
-    GIT_TAG 3.4
+    SDL3
+    GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+    GIT_TAG release-3.4.10
 )
-FetchContent_MakeAvailable(glfw)
+FetchContent_MakeAvailable(SDL3)
 
 find_package(OpenGL REQUIRED)
 
@@ -44,7 +55,7 @@ add_library(imgui STATIC
     ${imgui_SOURCE_DIR}/imgui_draw.cpp
     ${imgui_SOURCE_DIR}/imgui_tables.cpp
     ${imgui_SOURCE_DIR}/imgui_widgets.cpp
-    ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_sdl3.cpp
     ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
     ${imgui_SOURCE_DIR}/misc/cpp/imgui_stdlib.cpp
 )
@@ -54,17 +65,21 @@ target_include_directories(imgui PUBLIC
     ${imgui_SOURCE_DIR}/backends
 )
 
-target_link_libraries(imgui PUBLIC glfw OpenGL::GL)
+target_link_libraries(imgui PUBLIC SDL3::SDL3 OpenGL::GL)
 
 add_executable(${PROJECT_NAME}
     src/main.cpp
     src/app/Application.cpp
-    src/ui/ConnectionPanel.cpp
+        src/ui/NewConnectionPopup.cpp
     src/ui/DocumentTabs.cpp
     src/ui/ResultsTable.cpp
     src/db/postgres/PostgresConnection.cpp
         src/ui/Controls.h
         src/ui/Controls.cpp
+        src/db/ConnectionFactory.h
+        src/db/ConnectionFactory.cpp
+        src/db/ConnectionManager.cpp
+        src/db/ConnectionManager.h
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
@@ -79,6 +94,10 @@ if(WIN32)
             COMMAND ${CMAKE_COMMAND} -E copy_if_different "${POSTGRESQL_BIN_DIR}/${dll}" "$<TARGET_FILE_DIR:${PROJECT_NAME}>"
         )
     endforeach()
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "$<TARGET_FILE:SDL3::SDL3>" "$<TARGET_FILE_DIR:${PROJECT_NAME}>"
+    )
 endif()
 
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
