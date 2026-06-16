@@ -30,4 +30,6 @@ namespace ui::style {
     constexpr ImU32 kToolbarSave = IM_COL32(95, 176, 168, 255);
     constexpr ImU32 kToolbarImport = IM_COL32(90, 169, 196, 255);
     constexpr ImU32 kToolbarExport = IM_COL32(181, 139, 212, 255);
+
+    constexpr ImVec4 kBgTransparent{0, 0, 0, 0};
 }

@@ -33,7 +33,9 @@ namespace app {
         DrawToolbar();
         ImGui::Separator();
 
-        m_sideBar.Draw();
+        m_sideBar.Draw([this](const std::string &schema, const std::string &table) {
+            OpenTableTab(schema, table);
+        });
 
         ImGui::SameLine();
 
@@ -71,10 +73,17 @@ namespace app {
         }
 
         ImGui::SameLine();
+        const float btnH = ui::controls::getDpiSize(25.0f);
+        const float textH = ImGui::GetTextLineHeight();
+        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (btnH - textH) * 0.5f);
+        ImGui::TextUnformatted("|");
+
+        ImGui::SameLine();
         if (ui::controls::IconButton("Refresh Schema", ICON_FA_ROTATE, ui::style::kToolbarRefresh))
             RefreshSchema();
 
         ImGui::SameLine();
+        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (btnH - textH) * 0.5f);
         ImGui::TextUnformatted("|");
 
         ImGui::SameLine();
@@ -90,6 +99,7 @@ namespace app {
         }
 
         ImGui::SameLine();
+        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (btnH - textH) * 0.5f);
         ImGui::TextUnformatted("|");
 
         ImGui::SameLine();

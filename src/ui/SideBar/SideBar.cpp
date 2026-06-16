@@ -20,7 +20,7 @@ constexpr ImGuiTreeNodeFlags leafFlags =
         ImGuiTreeNodeFlags_Leaf |
         ImGuiTreeNodeFlags_NoTreePushOnOpen;
 
-void ui::SideBar::Draw() {
+void ui::SideBar::Draw(const std::function<void(const std::string &, const std::string &)> &onOpenTable) {
     const float iconSize = ImGui::GetStyle().FontSizeBase - 1;
     const float sidebarWidth = ui::controls::getDpiSize(240.0f);
     ImGui::BeginChild("##sidebar", ImVec2(sidebarWidth, 0), ImGuiChildFlags_Borders);
@@ -91,6 +91,9 @@ void ui::SideBar::Draw() {
                                     ImGui::TreeNodeEx(tableId.c_str(), tmpFlags);
                                     if (ImGui::IsItemClicked()) {
                                         m_selectedKey = tableId;
+                                    }
+                                    if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+                                        onOpenTable(schema.label, table.label);
                                     }
                                     ImGui::SameLine();
                                     ImGui::PushFont(nullptr, iconSize);

@@ -4,6 +4,9 @@
 #include "Controls.h"
 #include <imgui.h>
 
+#include "dark_style.h"
+#include "IconsFontAwesome6.h"
+
 namespace ui {
     void NewConnectionPopup::open() {
         m_pendingOpen = true;
@@ -13,7 +16,7 @@ namespace ui {
     }
 
     PopupResult NewConnectionPopup::Draw() {
-        constexpr auto kPopupId = "Connection##popup";
+        constexpr auto kPopupId = "New Connection##popup";
         PopupResult result;
 
         if (m_pendingOpen) {
@@ -25,7 +28,20 @@ namespace ui {
         const ImVec2 center = ImGui::GetMainViewport()->GetCenter();
         ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
-        if (ImGui::BeginPopupModal(kPopupId, &m_isOpen, ImGuiWindowFlags_AlwaysAutoResize)) {
+        // custom style popup
+        ImGui::PushStyleColor(ImGuiCol_TitleBg, style::kBgTransparent);
+        ImGui::PushStyleColor(ImGuiCol_TitleBgActive, style::kBgTransparent);
+
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8.0f, 12.0f));
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f, 0.0f));
+
+
+        const auto isPopupOpen = ImGui::BeginPopupModal(kPopupId, &m_isOpen, ImGuiWindowFlags_AlwaysAutoResize);
+
+        ImGui::PopStyleVar(2);
+        ImGui::PopStyleColor(2);
+
+        if (isPopupOpen) {
             if (!m_isOpen) {
                 ImGui::CloseCurrentPopup();
             }
@@ -41,14 +57,18 @@ namespace ui {
                 }
             }
 
-            ImGui::PushItemWidth(controls::getDpiSize(300.0f));
-            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(controls::getDpiSize(8.0f), controls::getDpiSize(7.0f)));
+            ImGui::PushItemWidth(controls::getDpiSize(350.0f));
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,
+                                ImVec2(controls::getDpiSize(8.0f), controls::getDpiSize(10.0f)));
+
+            ImGui::Separator();
+
             controls::Combo("Database Type", {"Postgresql", "MariaDb", "Sqlite"}, m_dbTypeIndex);
-            controls::InputText("Connection Name", m_config.connectionName);
-            controls::InputText("Host", m_config.host);
-            controls::InputText("Port", m_config.port);
-            controls::InputText("Database", m_config.database);
-            controls::InputText("User", m_config.user);
+            controls::InputText("Connection Name", m_config.connectionName, "Your easy to remember name");
+            controls::InputText("Host", m_config.host, "Database server address");
+            controls::InputText("Port", m_config.port, "Database server listening port");
+            controls::InputText("Database", m_config.database, "Database name");
+            controls::InputText("User", m_config.user, "Database username");
             controls::Password("Password", m_config.password);
             ImGui::PopStyleVar();
             ImGui::PopItemWidth();
@@ -59,15 +79,17 @@ namespace ui {
             ImGui::Separator();
 
             constexpr float kCloseWidth = 80.0f;
-            constexpr float kSaveWidth = 120.0f;
+            constexpr float kSaveWidth = 150.0f;
             const float spacing = ImGui::GetStyle().ItemSpacing.x;
             // Right edge stays constant for the whole row, so compute it once before
             // drawing anything (GetContentRegionAvail() shrinks as the cursor moves).
             const float rightEdge = ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x;
 
             ImGui::BeginDisabled(m_isTesting);
-            if (controls::Button(m_isTesting ? "Connecting...##test" : "Test Connection", 120.0f))
+            if (controls::IconButton(m_isTesting ? "Connecting...##test" : "Test Connection",ICON_FA_PLUG_CIRCLE_CHECK,
+                                     style::kToolbarConnect)) {
                 StartTest();
+            }
             ImGui::EndDisabled();
 
             // Use scaled widths here to match what controls::Button actually renders.
@@ -76,12 +98,13 @@ namespace ui {
 
             ImGui::SameLine(rightEdge - rightWidth);
 
-            if (controls::Button("Close", kCloseWidth))
+            if (controls::IconButton("Close", ICON_FA_XMARK, style::kToolbarDisconnect, kCloseWidth))
                 ImGui::CloseCurrentPopup();
 
             ImGui::SameLine();
             ImGui::BeginDisabled(m_isTesting);
-            if (controls::Button(m_isTesting ? "Connecting...##save" : "Save Connection", kSaveWidth)) {
+            if (controls::IconButton(m_isTesting ? "Connecting...##save" : "Save Connection",ICON_FA_FLOPPY_DISK,
+                                     style::kToolbarSave, kSaveWidth)) {
                 result.action = PopupAction::Save;
                 result.config = m_config;
                 ImGui::CloseCurrentPopup();
@@ -89,9 +112,11 @@ namespace ui {
 
             ImGui::EndDisabled();
 
+            ImGui::Dummy(ImVec2(0, 4.0f));
 
             ImGui::EndPopup();
         }
+
         return result;
     }
 

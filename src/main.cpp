@@ -17,7 +17,8 @@ static void ApplyDpiScale(const float scale) {
     ImGui::StyleColorsDark();
 
     // custom style
-    // ImGuiStyle& guiStyle = ImGui::GetStyle();
+    ImGuiStyle& guiStyle = ImGui::GetStyle();
+    guiStyle.Colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0, 0, 0, 0);
     // guiStyle.Colors[ImGuiCol_Button] = ImVec4(0,0,0,0);
     // guiStyle.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.10f, 0.13f, 0.17f, 1.0f);
 
