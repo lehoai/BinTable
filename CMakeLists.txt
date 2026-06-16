@@ -44,6 +44,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(SDL3)
 
 find_package(OpenGL REQUIRED)
+find_package(Freetype REQUIRED)
 
 if(WIN32)
     set(PostgreSQL_ROOT "C:/Users/Administrator/Desktop/postgresql-18.4-1-windows-x64-binaries/pgsql" CACHE PATH "Path to PostgreSQL installation")
@@ -58,14 +59,18 @@ add_library(imgui STATIC
     ${imgui_SOURCE_DIR}/backends/imgui_impl_sdl3.cpp
     ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
     ${imgui_SOURCE_DIR}/misc/cpp/imgui_stdlib.cpp
+    ${imgui_SOURCE_DIR}/misc/freetype/imgui_freetype.cpp
 )
 
 target_include_directories(imgui PUBLIC
     ${imgui_SOURCE_DIR}
     ${imgui_SOURCE_DIR}/backends
+    ${imgui_SOURCE_DIR}/misc/freetype
 )
 
-target_link_libraries(imgui PUBLIC SDL3::SDL3 OpenGL::GL)
+target_compile_definitions(imgui PUBLIC IMGUI_ENABLE_FREETYPE)
+
+target_link_libraries(imgui PUBLIC SDL3::SDL3 OpenGL::GL Freetype::Freetype)
 
 add_executable(${PROJECT_NAME}
     src/main.cpp

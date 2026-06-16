@@ -7,6 +7,8 @@
 #include <algorithm>
 #include <vector>
 
+#include "Controls.h"
+
 namespace ui {
 
 namespace {
@@ -69,7 +71,7 @@ void DrawDocumentTabs(std::vector<DocumentTab>& tabs, const bool canRun,
     const std::function<void()>& onNewQueryTab)
 {
     ImGui::PushStyleVar(ImGuiStyleVar_TabRounding, 0.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(12, 10));
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(12, ui::controls::getDpiSize(6)));
     if (ImGui::BeginTabBar("##DocumentTabs", ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_FittingPolicyScroll))
     {
         if (ImGui::TabItemButton("+", ImGuiTabItemFlags_Trailing | ImGuiTabItemFlags_NoTooltip))

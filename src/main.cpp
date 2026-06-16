@@ -6,6 +6,7 @@
 #include <cstdio>
 #include "app/Application.h"
 #include "IconsFontAwesome6.h"
+#include "imgui_freetype.h"
 
 // Rebuild the style from scratch and re-apply DPI scaling, so the UI matches whichever
 // monitor the window currently lives on (handles dragging the window between displays
@@ -29,6 +30,8 @@ static void SetupFonts(const ImGuiIO &io) {
     ImGuiStyle &style = ImGui::GetStyle();
     style.FontSizeBase = 14.0f;
 
+    io.Fonts->FontLoaderFlags = ImGuiFreeTypeBuilderFlags_LightHinting;
+
     // main font
     const ImFont *primary = io.Fonts->AddFontFromFileTTF("assets/fonts/DejaVuSansMono.ttf");
     IM_ASSERT(primary != nullptr && "DejaVu font not found");
@@ -44,6 +47,8 @@ static void SetupFonts(const ImGuiIO &io) {
     static constexpr ImWchar iconRanges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
     ImFont *icons = io.Fonts->AddFontFromFileTTF("assets/fonts/FontAwesome6-Solid.otf", 0.0f, &cfg, iconRanges);
     IM_ASSERT(icons != nullptr && "FontAwesome font not found");
+
+
 }
 
 int main(int, char **) {

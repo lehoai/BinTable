@@ -1,5 +1,7 @@
 #include <imgui.h>
 #include "Controls.h"
+
+#include "../../cmake-build-release/_deps/imgui-src/imgui_internal.h"
 #include "ui/dark_style.h"
 #include "misc/cpp/imgui_stdlib.h"
 
@@ -39,7 +41,7 @@ bool ui::controls::IconButton(const char *label, const char *icon, const ImU32 &
     const float contentW = iSz.x + spacing + tSz.x;
     const ImVec2 btnSz(contentW + 15 * 2, getDpiSize(25.0f));
 
-    ImVec2 p = ImGui::GetCursorScreenPos();
+    const ImVec2 p = ImGui::GetCursorScreenPos();
     const bool pressed = ImGui::InvisibleButton(label, btnSz);
     const bool hovered = ImGui::IsItemHovered();
     // const bool held    = ImGui::IsItemActive();
@@ -55,17 +57,17 @@ bool ui::controls::IconButton(const char *label, const char *icon, const ImU32 &
 
     const ImU32 textColor = hovered ? style::kBtnTextHover : style::kBtnTextNormal;
 
-    const float yMid = p.y + btnSz.y * 0.5f;
+    const float yMid = ImFloor(p.y + btnSz.y * 0.5f);
     float x     = p.x + 15;
 
 
     dl->AddText(font, iconSize,
-                ImVec2(x, yMid - iSz.y * 0.5f), iconColor, icon);
+                ImVec2(x, ImFloor(yMid - iSz.y * 0.5f)), iconColor, icon);
 
 
     x += iSz.x + spacing;
     dl->AddText(font, textSize,
-                ImVec2(x, yMid - tSz.y * 0.5f), textColor, label);
+                ImVec2(x, ImFloor(yMid - tSz.y * 0.5f)), textColor, label);
 
     return pressed;
 }
