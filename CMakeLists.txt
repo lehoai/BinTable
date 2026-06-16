@@ -80,6 +80,10 @@ add_executable(${PROJECT_NAME}
         src/db/ConnectionFactory.cpp
         src/db/ConnectionManager.cpp
         src/db/ConnectionManager.h
+        src/ui/SideBar/SideBar.cpp
+        src/ui/SideBar/SideBar.h
+        src/services/ConnectionService.cpp
+        src/services/ConnectionService.h
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)

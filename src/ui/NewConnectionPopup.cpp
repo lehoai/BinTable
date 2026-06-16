@@ -1,8 +1,8 @@
 #include "ui/NewConnectionPopup.h"
+#include "db/ConnectionFactory.h"
+
 #include "Controls.h"
 #include <imgui.h>
-
-#include "db/ConnectionFactory.h"
 
 namespace ui {
     void NewConnectionPopup::open() {
@@ -41,8 +41,8 @@ namespace ui {
                 }
             }
 
-            ImGui::PushItemWidth(300.0f);
-            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8.0f, 7.0f));
+            ImGui::PushItemWidth(controls::getDpiSize(300.0f));
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(controls::getDpiSize(8.0f), controls::getDpiSize(7.0f)));
             controls::Combo("Database Type", {"Postgresql", "MariaDb", "Sqlite"}, m_dbTypeIndex);
             controls::InputText("Connection Name", m_config.connectionName);
             controls::InputText("Host", m_config.host);
@@ -70,8 +70,9 @@ namespace ui {
                 StartTest();
             ImGui::EndDisabled();
 
-            float rightWidth = kCloseWidth;
-            rightWidth += spacing + kSaveWidth;
+            // Use scaled widths here to match what controls::Button actually renders.
+            float rightWidth = controls::getDpiSize(kCloseWidth);
+            rightWidth += spacing + controls::getDpiSize(kSaveWidth);
 
             ImGui::SameLine(rightEdge - rightWidth);
 

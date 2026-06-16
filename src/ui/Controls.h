@@ -3,6 +3,9 @@
 #include <vector>
 
 namespace ui::controls {
+
+    float getDpiSize(float size);
+
     bool Button(const char *label);
 
     bool Button(const char *label, float width);

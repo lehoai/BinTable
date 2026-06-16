@@ -1,17 +1,26 @@
 #include <imgui.h>
 #include "Controls.h"
 #include "misc/cpp/imgui_stdlib.h"
-//
-// Created by lehoai on 6/14/26.
-//
-#include "Controls.h"
+
+inline float ui::controls::getDpiSize(const float size) {
+    const float scale = ImGui::GetStyle().FontScaleDpi;
+    return size * scale;
+}
 
 bool ui::controls::Button(const char *label) {
-    return ImGui::Button(label, ImVec2(0, 25));
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(15, 0));
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3.0f);
+    const auto btn = ImGui::Button(label, ImVec2(0, getDpiSize(25.0f)));
+    ImGui::PopStyleVar(2);
+    return btn;
 }
 
 bool ui::controls::Button(const char *label, const float width) {
-    return ImGui::Button(label, ImVec2(width, 25));
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(15, 0));
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3.0f);
+    const auto btn = ImGui::Button(label, ImVec2(getDpiSize(width), getDpiSize(25.0f)));
+    ImGui::PopStyleVar(2);
+    return btn;
 }
 
 void ui::controls::InputText(const char *label, std::string &value, const char *placeholder) {

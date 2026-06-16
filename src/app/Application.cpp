@@ -8,13 +8,11 @@
 #include <imgui.h>
 #include <algorithm>
 
+#include "IconsFontAwesome6.h"
+
 namespace app {
     Application::Application() {
         AddQueryTab();
-    }
-
-    db::ConnectionSession *Application::ActiveSession() {
-        return m_connections.Find(m_activeSessionId);
     }
 
     void Application::RenderUI() {
@@ -34,15 +32,11 @@ namespace app {
         DrawToolbar();
         ImGui::Separator();
 
-        constexpr float sidebarWidth = 240.0f;
-        constexpr float schemaPanelWidth = 300.0f;
-
-        ImGui::BeginChild("##sidebar", ImVec2(sidebarWidth, 0), ImGuiChildFlags_Borders);
-        DrawSidebar();
-        ImGui::EndChild();
+        m_sideBar.Draw();
 
         ImGui::SameLine();
 
+        const float schemaPanelWidth = ui::controls::getDpiSize(300.0f);
         ImGui::BeginChild("##center", ImVec2(-schemaPanelWidth, 0), ImGuiChildFlags_Borders);
         ui::DrawDocumentTabs(m_tabs, true,
                              [this](ui::DocumentTab &tab) { RunQueryTab(tab); },
@@ -58,11 +52,9 @@ namespace app {
 
         ImGui::End();
 
-        const auto [action, config] = m_connectionPopup.Draw();
-        if (action == ui::PopupAction::Save) {
+        if (const auto [action, config] = m_connectionPopup.Draw(); action == ui::PopupAction::Save) {
             // TODO: save to disk
-            const int id = m_connections.OpenSession(config);
-            if (id != -1) {
+            if (const int id = m_connections.OpenSession(config); id != -1) {
                 m_activeSessionId = id;
                 RefreshSchema();
             }
@@ -70,92 +62,84 @@ namespace app {
     }
 
     void Application::DrawToolbar() {
-        if (ui::controls::Button("Connect", 110.0f))
+        if (ui::controls::Button(ICON_FA_PLUG " Connect"))
             m_connectionPopup.open();
 
         ImGui::SameLine();
-        if (ui::controls::Button("Disconnect", 110.0f)) {
+        if (ui::controls::Button(ICON_FA_PLUG_CIRCLE_XMARK " Disconnect")) {
         }
 
         ImGui::SameLine();
-        if (ui::controls::Button("Refresh Schema", 110.0f))
+        if (ui::controls::Button(ICON_FA_ROTATE " Refresh Schema"))
             RefreshSchema();
 
         ImGui::SameLine();
         ImGui::TextUnformatted("|");
 
         ImGui::SameLine();
-        if (ui::controls::Button("New Query", 90.0f))
+        if (ui::controls::Button(ICON_FA_FILE " New Query"))
             AddQueryTab();
 
         ImGui::SameLine();
-        if (ui::controls::Button("Open", 90.0f)) {
+        if (ui::controls::Button(ICON_FA_FOLDER_OPEN " Open")) {
         }
 
         ImGui::SameLine();
-        if (ui::controls::Button("Save", 90.0f)) {
+        if (ui::controls::Button(ICON_FA_FLOPPY_DISK " Save")) {
         }
 
         ImGui::SameLine();
         ImGui::TextUnformatted("|");
 
         ImGui::SameLine();
-        if (ui::controls::Button("Import", 90.0f)) {
+        if (ui::controls::Button(ICON_FA_FILE_IMPORT " Import")) {
         }
 
         ImGui::SameLine();
-        if (ui::controls::Button("Export", 90.0f)) {
+        if (ui::controls::Button(ICON_FA_FILE_EXPORT " Export")) {
         }
-
-
-        // if (isConnected)
-        //     ImGui::TextColored(ImVec4(0.5f, 1.0f, 0.5f, 1.0f), "Connected: %s@%s:%s/%s",
-        //                        m_connectionPopup.m_config.user.c_str(), m_connectionPopup.m_config.host.c_str(),
-        //                        m_connectionPopup.m_config.port.c_str(), m_connectionPopup.m_config.database.c_str());
-        // else
-        //     ImGui::TextDisabled("%s", m_statusMessage.empty() ? "Not connected" : m_statusMessage.c_str());
     }
 
-    void Application::DrawSidebar() {
-        ImGui::TextUnformatted("Database");
-        ImGui::Separator();
-
-        const db::ConnectionSession *s = ActiveSession();
-        if (!s || !s->IsConnected()) {
-            ImGui::TextDisabled("Not connected");
-            return;
-        }
-        if (s->schemas.empty()) {
-            ImGui::TextDisabled("No tables found");
-            return;
-        }
-
-        // for (auto &[name, tables]: s->schemas) {
-        //     ImGuiTreeNodeFlags schemaFlags = ImGuiTreeNodeFlags_SpanAvailWidth;
-        //     if (name == "public")
-        //         schemaFlags |= ImGuiTreeNodeFlags_DefaultOpen;
-        //
-        //     if (ImGui::TreeNodeEx(name.c_str(), schemaFlags)) {
-        //         for (auto &table: tables) {
-        //             ImGuiTreeNodeFlags tableFlags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen
-        //                                             | ImGuiTreeNodeFlags_SpanAvailWidth;
-        //             if (name == m_selectedSchema && table.name == m_selectedTable)
-        //                 tableFlags |= ImGuiTreeNodeFlags_Selected;
-        //
-        //             ImGui::TreeNodeEx(table.name.c_str(), tableFlags);
-        //
-        //             if (ImGui::IsItemClicked()) {
-        //                 m_selectedSchema = name;
-        //                 m_selectedTable = table.name;
-        //                 LoadTableColumns(s->connection, table);
-        //             }
-        //             if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
-        //                 OpenTableTab(name, table.name);
-        //         }
-        //         ImGui::TreePop();
-        //     }
-        // }
-    }
+    // void Application::DrawSidebar() {
+    //     ImGui::TextUnformatted("Database");
+    //     ImGui::Separator();
+    //
+    //     const db::ConnectionSession *s = ActiveSession();
+    //     if (!s || !s->IsConnected()) {
+    //         ImGui::TextDisabled("Not connected");
+    //         return;
+    //     }
+    //     if (s->schemas.empty()) {
+    //         ImGui::TextDisabled("No tables found");
+    //         return;
+    //     }
+    //
+    //     for (auto &[name, tables]: s->schemas) {
+    //         ImGuiTreeNodeFlags schemaFlags = ImGuiTreeNodeFlags_SpanAvailWidth;
+    //         if (name == "public")
+    //             schemaFlags |= ImGuiTreeNodeFlags_DefaultOpen;
+    //
+    //         if (ImGui::TreeNodeEx(name.c_str(), schemaFlags)) {
+    //             for (auto &table: tables) {
+    //                 ImGuiTreeNodeFlags tableFlags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen
+    //                                                 | ImGuiTreeNodeFlags_SpanAvailWidth;
+    //                 if (name == m_selectedSchema && table.name == m_selectedTable)
+    //                     tableFlags |= ImGuiTreeNodeFlags_Selected;
+    //
+    //                 ImGui::TreeNodeEx(table.name.c_str(), tableFlags);
+    //
+    //                 if (ImGui::IsItemClicked()) {
+    //                     m_selectedSchema = name;
+    //                     m_selectedTable = table.name;
+    //                     LoadTableColumns(s->connection, table);
+    //                 }
+    //                 if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+    //                     OpenTableTab(name, table.name);
+    //             }
+    //             ImGui::TreePop();
+    //         }
+    //     }
+    // }
 
     void Application::DrawSchemaPanel() const {
         ImGui::TextUnformatted("Schema");

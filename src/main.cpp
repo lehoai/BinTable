@@ -5,6 +5,7 @@
 #include <SDL3/SDL_opengl.h>
 #include <cstdio>
 #include "app/Application.h"
+#include "IconsFontAwesome6.h"
 
 // Rebuild the style from scratch and re-apply DPI scaling, so the UI matches whichever
 // monitor the window currently lives on (handles dragging the window between displays
@@ -16,7 +17,8 @@ static void ApplyDpiScale(const float scale) {
 
     // custom style
     // ImGuiStyle& guiStyle = ImGui::GetStyle();
-    // guiStyle.Colors[ImGuiCol_Button] = ImVec4(0.137, 0.149, 0.176, 1.0);
+    // guiStyle.Colors[ImGuiCol_Button] = ImVec4(0.15f, 0.20f, 0.25f, 1.0f);
+    // guiStyle.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.20f, 0.28f, 0.35f, 1.0f);
 
     style.FontSizeBase = 14.0f;
     style.ScaleAllSizes(scale);
@@ -35,6 +37,13 @@ static void SetupFonts(const ImGuiIO &io) {
     cfg.MergeMode = true;
     ImFont *jp = io.Fonts->AddFontFromFileTTF("assets/fonts/NotoMonoJP-subset.ttf", 0.0f, &cfg);
     IM_ASSERT(jp != nullptr && "Noto font not found");
+
+    cfg.MergeMode = true;
+    cfg.PixelSnapH = true;
+    cfg.GlyphOffset = ImVec2(0.0f, 0.0f);
+    static constexpr ImWchar iconRanges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+    ImFont *icons = io.Fonts->AddFontFromFileTTF("assets/fonts/FontAwesome6-Solid.otf", 10.0f, &cfg, iconRanges);
+    IM_ASSERT(icons != nullptr && "FontAwesome font not found");
 }
 
 int main(int, char **) {
@@ -59,7 +68,7 @@ int main(int, char **) {
     SDL_GLContext gl_context = SDL_GL_CreateContext(window);
     SDL_GL_MakeCurrent(window, gl_context);
     SDL_GL_SetSwapInterval(1);
-    SDL_ShowWindow(window);
+    // SDL_ShowWindow(window);
 
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
@@ -88,19 +97,25 @@ int main(int, char **) {
     // Main loop
     bool done = false;
     while (!done) {
-        // WaitEvents blocks until the next OS event, but ImGui often needs one
-        // extra frame to reflect state changes (e.g. a popup closing after a
-        // button click).  PostEmptyEvent at the end of the loop guarantees that
-        // a second frame always follows immediately, so the UI never appears
-        // "stuck" waiting for the user to wiggle the mouse.
+        // WaitEvent blocks until an OS event arrives.  After processing real
+        // input we push one SDL_EVENT_USER so ImGui gets a second frame to
+        // reflect state changes (popup close, button press, etc.).  We do NOT
+        // push another event when the frame was itself triggered by that
+        // sentinel, so the loop actually blocks when the UI is idle.
         SDL_Event event;
         SDL_WaitEvent(&event);
 
+        bool hadRealEvent = false;
         do {
             ImGui_ImplSDL3_ProcessEvent(&event);
             if (event.type == SDL_EVENT_QUIT) done = true;
             if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED && event.window.windowID == SDL_GetWindowID(window))
                 done = true;
+            if (event.type == SDL_EVENT_WINDOW_DISPLAY_CHANGED) {
+                ApplyDpiScale(SDL_GetWindowDisplayScale(window));
+            }
+            if (event.type != SDL_EVENT_USER)
+                hadRealEvent = true;
         } while (SDL_PollEvent(&event));
 
         // Start the Dear ImGui frame
@@ -121,13 +136,15 @@ int main(int, char **) {
 
         SDL_GL_SwapWindow(window);
 
-        // Ensure one more frame renders so that ImGui state changes made this
-        // frame (popup close, button press, etc.) are actually displayed before
-        // we block again on glfwWaitEvents.
-        SDL_Event wake;
-        SDL_zero(wake);
-        wake.type = SDL_EVENT_USER;
-        SDL_PushEvent(&wake);
+        // Push a follow-up frame only when real input arrived this iteration,
+        // so ImGui can finalise state changes.  Skipping this for the sentinel
+        // frame itself breaks the render loop and lets WaitEvent block.
+        if (hadRealEvent) {
+            SDL_Event wake;
+            SDL_zero(wake);
+            wake.type = SDL_EVENT_USER;
+            SDL_PushEvent(&wake);
+        }
     }
 
     // Cleanup
