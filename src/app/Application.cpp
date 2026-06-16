@@ -4,6 +4,7 @@
 #include "ui/NewConnectionPopup.h"
 #include "ui/DocumentTabs.h"
 #include "ui/Controls.h"
+#include "ui/dark_style.h"
 
 #include <imgui.h>
 #include <algorithm>
@@ -62,41 +63,41 @@ namespace app {
     }
 
     void Application::DrawToolbar() {
-        if (ui::controls::Button(ICON_FA_PLUG " Connect"))
+        if (ui::controls::IconButton("Connect", ICON_FA_PLUG, ui::style::kToolbarConnect))
             m_connectionPopup.open();
 
         ImGui::SameLine();
-        if (ui::controls::Button(ICON_FA_PLUG_CIRCLE_XMARK " Disconnect")) {
+        if (ui::controls::IconButton("Disconnect", ICON_FA_PLUG_CIRCLE_XMARK, ui::style::kToolbarDisconnect)) {
         }
 
         ImGui::SameLine();
-        if (ui::controls::Button(ICON_FA_ROTATE " Refresh Schema"))
+        if (ui::controls::IconButton("Refresh Schema", ICON_FA_ROTATE, ui::style::kToolbarRefresh))
             RefreshSchema();
 
         ImGui::SameLine();
         ImGui::TextUnformatted("|");
 
         ImGui::SameLine();
-        if (ui::controls::Button(ICON_FA_FILE " New Query"))
+        if (ui::controls::IconButton("New Query", ICON_FA_FILE, ui::style::kToolbarNewQuery))
             AddQueryTab();
 
         ImGui::SameLine();
-        if (ui::controls::Button(ICON_FA_FOLDER_OPEN " Open")) {
+        if (ui::controls::IconButton("Open", ICON_FA_FOLDER_OPEN, ui::style::kToolbarOpen)) {
         }
 
         ImGui::SameLine();
-        if (ui::controls::Button(ICON_FA_FLOPPY_DISK " Save")) {
+        if (ui::controls::IconButton("Save", ICON_FA_FLOPPY_DISK, ui::style::kToolbarSave)) {
         }
 
         ImGui::SameLine();
         ImGui::TextUnformatted("|");
 
         ImGui::SameLine();
-        if (ui::controls::Button(ICON_FA_FILE_IMPORT " Import")) {
+        if (ui::controls::IconButton("Import", ICON_FA_FILE_IMPORT, ui::style::kToolbarImport)) {
         }
 
         ImGui::SameLine();
-        if (ui::controls::Button(ICON_FA_FILE_EXPORT " Export")) {
+        if (ui::controls::IconButton(" Export", ICON_FA_FILE_EXPORT, ui::style::kToolbarExport)) {
         }
     }
 

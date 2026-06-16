@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <imgui.h>
 
 namespace ui::controls {
 
@@ -9,6 +10,8 @@ namespace ui::controls {
     bool Button(const char *label);
 
     bool Button(const char *label, float width);
+
+    bool IconButton(const char *label, const char *icon, const ImU32& iconColor);
 
     void InputText(const char *label, std::string &value, const char *placeholder = nullptr);
 

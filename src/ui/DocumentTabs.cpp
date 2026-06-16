@@ -68,6 +68,8 @@ void DrawDocumentTabs(std::vector<DocumentTab>& tabs, const bool canRun,
     const std::function<void(DocumentTab&)>& onRefreshTable,
     const std::function<void()>& onNewQueryTab)
 {
+    ImGui::PushStyleVar(ImGuiStyleVar_TabRounding, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(12, 10));
     if (ImGui::BeginTabBar("##DocumentTabs", ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_FittingPolicyScroll))
     {
         if (ImGui::TabItemButton("+", ImGuiTabItemFlags_Trailing | ImGuiTabItemFlags_NoTooltip))
@@ -99,6 +101,7 @@ void DrawDocumentTabs(std::vector<DocumentTab>& tabs, const bool canRun,
     }
 
     tabs.erase(std::remove_if(tabs.begin(), tabs.end(), [](const DocumentTab& tab) { return !tab.open; }), tabs.end());
+    ImGui::PopStyleVar(2);
 }
 
 } // namespace ui

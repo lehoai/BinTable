@@ -1,4 +1,5 @@
 #include "ui/ResultsTable.h"
+#include "ui/dark_style.h"
 
 #include <imgui.h>
 
@@ -9,7 +10,7 @@ void DrawQueryResultTable(const db::QueryResult& result, const char* tableId, fl
     if (!result.success)
     {
         if (!result.error.empty())
-            ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "%s", result.error.c_str());
+            ImGui::TextColored(style::kTextError, "%s", result.error.c_str());
         return;
     }
 

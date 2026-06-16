@@ -28,6 +28,11 @@ std::vector<services::TreeNode> services::ConnectionService::BuildTree() {
     table1.type = NodeType::Table;
     schema1.children.push_back(table1);
 
+    TreeNode table2;
+    table2.label = "Product";
+    table2.type = NodeType::Table;
+    schema1.children.push_back(table2);
+
     TreeNode view1;
     view1.label = "active_users";
     view1.type = NodeType::View;

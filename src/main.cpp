@@ -17,8 +17,8 @@ static void ApplyDpiScale(const float scale) {
 
     // custom style
     // ImGuiStyle& guiStyle = ImGui::GetStyle();
-    // guiStyle.Colors[ImGuiCol_Button] = ImVec4(0.15f, 0.20f, 0.25f, 1.0f);
-    // guiStyle.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.20f, 0.28f, 0.35f, 1.0f);
+    // guiStyle.Colors[ImGuiCol_Button] = ImVec4(0,0,0,0);
+    // guiStyle.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.10f, 0.13f, 0.17f, 1.0f);
 
     style.FontSizeBase = 14.0f;
     style.ScaleAllSizes(scale);
@@ -42,7 +42,7 @@ static void SetupFonts(const ImGuiIO &io) {
     cfg.PixelSnapH = true;
     cfg.GlyphOffset = ImVec2(0.0f, 0.0f);
     static constexpr ImWchar iconRanges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
-    ImFont *icons = io.Fonts->AddFontFromFileTTF("assets/fonts/FontAwesome6-Solid.otf", 10.0f, &cfg, iconRanges);
+    ImFont *icons = io.Fonts->AddFontFromFileTTF("assets/fonts/FontAwesome6-Solid.otf", 0.0f, &cfg, iconRanges);
     IM_ASSERT(icons != nullptr && "FontAwesome font not found");
 }
 

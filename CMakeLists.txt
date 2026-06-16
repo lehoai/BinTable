@@ -84,6 +84,7 @@ add_executable(${PROJECT_NAME}
         src/ui/SideBar/SideBar.h
         src/services/ConnectionService.cpp
         src/services/ConnectionService.h
+        src/ui/dark_style.h
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)

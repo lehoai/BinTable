@@ -11,7 +11,7 @@ namespace ui {
 
     private:
         std::string m_filterText;
-        int m_selectedIndex = -1;
+        std::string m_selectedKey;
         services::ConnectionService m_connService;
     };
 }
