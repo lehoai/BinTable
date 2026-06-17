@@ -46,7 +46,7 @@ static void SetupFonts(const ImGuiIO &io) {
     cfg.PixelSnapH = true;
     cfg.GlyphOffset = ImVec2(0.0f, 0.0f);
     static constexpr ImWchar iconRanges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
-    ImFont *icons = io.Fonts->AddFontFromFileTTF("assets/fonts/FontAwesome6-Solid.otf", 0.0f, &cfg, iconRanges);
+    const ImFont *icons = io.Fonts->AddFontFromFileTTF("assets/fonts/FontAwesome6-Solid.otf", 0.0f, &cfg, iconRanges);
     IM_ASSERT(icons != nullptr && "FontAwesome font not found");
 
 

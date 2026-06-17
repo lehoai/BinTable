@@ -321,8 +321,36 @@ namespace app {
         tab.schemaName = schemaName;
         tab.tableName = tableName;
         tab.focusRequested = true;
+
+        // TODO: remove fake data when real query is ready
+        tab.result.success = true;
+        tab.result.columns = { "id " ICON_FA_KEY, "username", "email", "role", "created_at", "is_active", "age", "balance" };
+        tab.result.rows = {
+            { "1",  "alice",        "alice@example.com",   "admin",  "2024-01-15 09:00:00", "true",  "28", "1500.00"  },
+            { "2",  "bob",          "bob@example.com",     "user",   "2024-02-20 14:30:00", "true",  "34", "320.50"   },
+            { "3",  "carol",        "carol@example.com",   "user",   "2024-03-05 11:15:00", "false", "22", "0.00"     },
+            { "4",  "dave",         "dave@example.com",    "editor", "2024-03-18 08:45:00", "true",  "41", "870.75"   },
+            { "5",  "eve",          "eve@example.com",     "user",   "2024-04-01 16:00:00", "true",  "29", "150.25"   },
+            { "6",  "frank",        "frank@example.com",   "admin",  "2024-04-10 10:20:00", "true",  "37", "4200.00"  },
+            { "7",  "grace",        "grace@example.com",   "user",   "2024-05-02 13:00:00", "false", "25", "0.00"     },
+            { "8",  "heidi",        "heidi@example.com",   "editor", "2024-05-14 09:30:00", "true",  "31", "990.10"   },
+            { "9",  "ivan",         "ivan@example.com",    "user",   "2024-06-01 17:45:00", "true",  "45", "55.00"    },
+            { "10", "judy",         "judy@example.com",    "user",   "2024-06-20 12:00:00", "true",  "27", "2100.80"  },
+            { "11", "karl",         "karl@example.com",    "editor", "2024-07-03 08:00:00", "false", "33", "0.00"     },
+            { "12", "laura",        "laura@example.com",   "user",   "2024-07-15 15:30:00", "true",  "38", "430.60"   },
+            { "13", "mallory",      "mallory@example.com", "user",   "2024-08-08 10:10:00", "true",  "23", "75.00"    },
+            { "14", "川崎さん",         "niaj@example.com",    "admin",  "2024-08-22 11:00:00", "true",  "50", "9800.00"  },
+            { "15", "olivia",       "olivia@example.com",  "user",   "2024-09-05 14:00:00", "true",  "26", "310.40"   },
+            { "16", "peggy",        "peggy@example.com",   "editor", "2024-09-18 09:15:00", "false", "32", "0.00"     },
+            { "17", "rupert",       "rupert@example.com",  "user",   "2024-10-01 16:45:00", "true",  "44", "620.00"   },
+            { "18", "sybil",        "sybil@example.com",   "user",   "2024-10-14 13:30:00", "true",  "30", "180.90"   },
+            { "19", "trent",        "trent@example.com",   "editor", "2024-11-02 08:20:00", "true",  "36", "750.00"   },
+            { "20", "victor",       "victor@example.com",  "user",   "2024-11-20 10:00:00", "false", "24", "0.00"     },
+        };
+        tab.statusMessage = std::to_string(tab.result.RowCount()) + " row(s) [fake data]";
+
         m_tabs.push_back(std::move(tab));
-        RunTableTab(m_tabs.back());
+        // RunTableTab(m_tabs.back()); // TODO: re-enable when connected
     }
 
     void Application::RunQueryTab(ui::DocumentTab &tab) {

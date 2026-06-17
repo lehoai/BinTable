@@ -17,6 +17,7 @@ namespace ui::style {
     // ---- IconButton colors (ImU32 for ImDrawList) ----
     constexpr ImU32 kTransparent = IM_COL32(0, 0, 0, 0);
     constexpr ImU32 kBtnHoverBg = IM_COL32(40, 48, 60, 255);
+    constexpr ImU32 kBtnHeldBg = IM_COL32(55, 66, 82, 255);
     constexpr ImU32 kBtnHoverBorder = IM_COL32(78, 90, 106, 255);
     constexpr ImU32 kBtnTextHover = IM_COL32(238, 242, 246, 255);
     constexpr ImU32 kBtnTextNormal = IM_COL32(200, 206, 214, 255);

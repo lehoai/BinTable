@@ -1,7 +1,7 @@
 #include <imgui.h>
 #include "Controls.h"
 
-#include "../../cmake-build-release/_deps/imgui-src/imgui_internal.h"
+#include "imgui_internal.h"
 #include "ui/dark_style.h"
 #include "misc/cpp/imgui_stdlib.h"
 
@@ -116,10 +116,11 @@ bool ui::controls::IconButton(const char *label, const char *icon, const ImU32 &
     return pressed;
 }
 
-void ui::controls::InputText(const char *label, std::string &value, const char *placeholder) {
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8, 10));
+void ui::controls::InputText(const char *label, std::string &value, const char *placeholder, const ImVec2 padding,
+                             const ImVec4 bg) {
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, padding);
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, style::kBgTransparent);
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, bg);
     ImGui::PushStyleColor(ImGuiCol_Border, ImGui::GetStyle().Colors[ImGuiCol_Separator]);
     if (placeholder == nullptr)
         ImGui::InputText(label, &value, 0);
@@ -141,7 +142,8 @@ void ui::controls::Password(const char *label, std::string &value) {
     ImGui::PopStyleColor(2);
 }
 
-bool ui::controls::Combo(const char *label, const std::vector<std::string> &items, int &selectedIndex, const ImVec2 padding) {
+bool ui::controls::Combo(const char *label, const std::vector<std::string> &items, int &selectedIndex,
+                         const ImVec2 padding) {
     bool changed = false;
 
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, padding);

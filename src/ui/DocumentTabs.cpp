@@ -57,21 +57,21 @@ namespace ui {
             DrawQueryResultTable(tab.result, "##results", avail.x, avail.y);
         }
 
-        void DrawTableViewTab(DocumentTab &tab, bool canRun, const std::function<void(DocumentTab &)> &onRefresh) {
-            ImGui::Text("%s.%s", tab.schemaName.c_str(), tab.tableName.c_str());
-
-            ImGui::SameLine();
-            ImGui::BeginDisabled(!canRun);
-            if (ImGui::Button("Refresh"))
-                onRefresh(tab);
-            ImGui::EndDisabled();
-
-            if (!tab.statusMessage.empty()) {
-                ImGui::SameLine();
-                ImGui::TextUnformatted(tab.statusMessage.c_str());
-            }
-
-            ImGui::Separator();
+        void DrawTableViewTab(const DocumentTab &tab, bool canRun, const std::function<void(DocumentTab &)> &onRefresh) {
+            // ImGui::Text("%s.%s", tab.schemaName.c_str(), tab.tableName.c_str());
+            //
+            // ImGui::SameLine();
+            // ImGui::BeginDisabled(!canRun);
+            // if (ImGui::Button("Refresh"))
+            //     onRefresh(tab);
+            // ImGui::EndDisabled();
+            //
+            // if (!tab.statusMessage.empty()) {
+            //     ImGui::SameLine();
+            //     ImGui::TextUnformatted(tab.statusMessage.c_str());
+            // }
+            //
+            // ImGui::Separator();
 
             const ImVec2 avail = ImGui::GetContentRegionAvail();
             DrawQueryResultTable(tab.result, "##results", avail.x, avail.y);
@@ -116,8 +116,7 @@ namespace ui {
             ImGui::EndTabBar();
         }
 
-        tabs.erase(std::remove_if(tabs.begin(), tabs.end(), [](const DocumentTab &tab) { return !tab.open; }),
-                   tabs.end());
+        std::erase_if(tabs, [](const DocumentTab &tab) { return !tab.open; });
         ImGui::PopStyleVar(3);
         ImGui::PopStyleColor(3);
     }

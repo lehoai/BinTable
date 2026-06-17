@@ -44,7 +44,26 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(SDL3)
 
 find_package(OpenGL REQUIRED)
-find_package(Freetype REQUIRED)
+
+# Prefer a system-installed FreeType (fast, e.g. on Linux).
+# Fall back to building it from source via FetchContent (e.g. on Windows
+# where FreeType is usually not installed).
+find_package(Freetype QUIET)
+if(NOT Freetype_FOUND)
+    message(STATUS "System FreeType not found; fetching and building from source")
+    FetchContent_Declare(
+        freetype
+        GIT_REPOSITORY https://github.com/freetype/freetype.git
+        GIT_TAG VER-2-13-3
+    )
+    FetchContent_MakeAvailable(freetype)
+    # FreeType's in-tree build only exposes the lowercase `freetype` target;
+    # the namespaced `Freetype::Freetype` name exists only when installed.
+    # Provide the alias so downstream link lines stay unchanged.
+    if(NOT TARGET Freetype::Freetype)
+        add_library(Freetype::Freetype ALIAS freetype)
+    endif()
+endif()
 
 if(WIN32)
     set(PostgreSQL_ROOT "C:/Users/Administrator/Desktop/postgresql-18.4-1-windows-x64-binaries/pgsql" CACHE PATH "Path to PostgreSQL installation")

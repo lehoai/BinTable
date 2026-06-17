@@ -78,8 +78,8 @@ namespace ui {
 
             ImGui::Separator();
 
-            constexpr float kCloseWidth = 80.0f;
-            constexpr float kSaveWidth = 150.0f;
+            const float kCloseWidth = controls::getDpiSize(80.0f);
+            const float kSaveWidth = controls::getDpiSize(150.0f);
             const float spacing = ImGui::GetStyle().ItemSpacing.x;
             // Right edge stays constant for the whole row, so compute it once before
             // drawing anything (GetContentRegionAvail() shrinks as the cursor moves).
@@ -92,9 +92,8 @@ namespace ui {
             }
             ImGui::EndDisabled();
 
-            // Use scaled widths here to match what controls::Button actually renders.
-            float rightWidth = controls::getDpiSize(kCloseWidth);
-            rightWidth += spacing + controls::getDpiSize(kSaveWidth);
+            // kCloseWidth/kSaveWidth are already DPI-scaled, use them directly.
+            const float rightWidth = kCloseWidth + spacing + kSaveWidth;
 
             ImGui::SameLine(rightEdge - rightWidth);
 
