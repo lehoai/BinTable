@@ -95,8 +95,8 @@ add_executable(${PROJECT_NAME}
     src/main.cpp
     src/app/Application.cpp
         src/ui/NewConnectionPopup.cpp
-    src/ui/DocumentTabs.cpp
-    src/ui/ResultsTable.cpp
+        src/ui/DocumentTab/DocumentTab.cpp
+        src/ui/TableView/ResultsTable.cpp
     src/db/postgres/PostgresConnection.cpp
         src/ui/Controls.h
         src/ui/Controls.cpp
@@ -109,6 +109,11 @@ add_executable(${PROJECT_NAME}
         src/services/ConnectionService.cpp
         src/services/ConnectionService.h
         src/ui/dark_style.h
+        src/ui/DocumentTab/QueryTab/QueryTab.cpp
+        src/ui/DocumentTab/QueryTab/QueryTab.h
+        src/ui/DocumentTab/TableViewTab/TableViewTab.cpp
+        src/ui/DocumentTab/TableViewTab/TableViewTab.h
+        src/ui/DocumentTab/DocumentData.h
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)

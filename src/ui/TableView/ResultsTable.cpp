@@ -1,13 +1,12 @@
-#include "ui/ResultsTable.h"
+#include "ResultsTable.h"
 
 #include <format>
 
 #include "ui/dark_style.h"
 #include "imgui_internal.h"
-#include "misc/cpp/imgui_stdlib.h"
 #include <imgui.h>
 
-#include "Controls.h"
+#include "../Controls.h"
 
 namespace ui {
     struct CellEdit {
