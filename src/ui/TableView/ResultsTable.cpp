@@ -18,7 +18,8 @@ namespace ui {
     static CellEdit cellEdits{};
 
 
-    void DrawQueryResultTable(const db::QueryResult &result, const char *tableId, float width, float height) {
+    void TableView::DrawQueryResultTable(const db::QueryResult &result, const char *tableId, float width,
+                                         const float height) {
         if (!result.success) {
             if (!result.error.empty())
                 ImGui::TextColored(style::kTextError, "%s", result.error.c_str());
@@ -57,7 +58,7 @@ namespace ui {
 
             constexpr float inputPadY = 8.0f;
             const float inputH = ImGui::GetTextLineHeight() + inputPadY * 2.0f;
-            const float rowH   = inputH + 4.0f;
+            const float rowH = inputH + 4.0f;
 
             ImGuiListClipper clipper;
             clipper.Begin(static_cast<int>(result.rows.size()));

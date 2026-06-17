@@ -10,5 +10,5 @@
 void ui::TableViewTab::DrawTableViewTab(const DocumentData &tab, bool canRun,
                                         const std::function<void(DocumentData &)> &onRefresh) {
     const ImVec2 avail = ImGui::GetContentRegionAvail();
-    DrawQueryResultTable(tab.result, "##results", avail.x, avail.y);
+    m_tableView.DrawQueryResultTable(tab.result, "##results", avail.x, avail.y);
 }
