@@ -7,7 +7,6 @@
 #include "ui/dark_style.h"
 #include "IconsFontAwesome6.h"
 #include <imgui.h>
-#include <format>
 
 constexpr ImGuiTreeNodeFlags baseFlags =
         ImGuiTreeNodeFlags_OpenOnArrow |
@@ -19,6 +18,18 @@ constexpr ImGuiTreeNodeFlags leafFlags =
         baseFlags |
         ImGuiTreeNodeFlags_Leaf |
         ImGuiTreeNodeFlags_NoTreePushOnOpen;
+
+// m_selectedKey format: "t:label" = table, "v:label" = view, "f:label" = function.
+// Zero-allocation comparison — no temporary string created per frame.
+static bool keyMatches(const std::string &key, const char type, const std::string &label) {
+    return key.size() == 2 + label.size()
+        && key[0] == type && key[1] == ':'
+        && key.compare(2, std::string::npos, label) == 0;
+}
+
+ui::SideBar::SideBar() {
+    m_treeNodes = m_connService.BuildTree();
+}
 
 void ui::SideBar::Draw(const std::function<void(const std::string &, const std::string &)> &onOpenTable) {
     const float iconSize = ImGui::GetStyle().FontSizeBase - 1;
@@ -33,12 +44,10 @@ void ui::SideBar::Draw(const std::function<void(const std::string &, const std::
     controls::InputText("##filter_text", m_filterText, "Search schema, tables...");
     ImGui::Separator();
 
-    // draw tree
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 6));
-    for (auto trees = m_connService.BuildTree(); auto &tree: trees) {
-        // server
-        auto serverId = std::format("##server{}", tree.label);
-        const bool serverOpen = ImGui::TreeNodeEx(serverId.c_str(), baseFlags);
+    for (auto &tree: m_treeNodes) {
+        ImGui::PushID(tree.label.c_str());
+        const bool serverOpen = ImGui::TreeNodeEx("##n", baseFlags);
         ImGui::SameLine();
         ImGui::PushFont(nullptr, iconSize);
         ImGui::TextColored(style::kIconServer, ICON_FA_SERVER);
@@ -47,22 +56,20 @@ void ui::SideBar::Draw(const std::function<void(const std::string &, const std::
         ImGui::TextUnformatted(tree.label.c_str());
 
         if (serverOpen) {
-            // database
-
             for (auto &db: tree.children) {
-                auto dbId = std::format("##db{}", db.label);
-                const bool dbOpen = ImGui::TreeNodeEx(dbId.c_str(), baseFlags);
+                ImGui::PushID(db.label.c_str());
+                const bool dbOpen = ImGui::TreeNodeEx("##n", baseFlags);
                 ImGui::SameLine();
                 ImGui::PushFont(nullptr, iconSize);
                 ImGui::TextColored(style::kIconDatabase, ICON_FA_DATABASE);
                 ImGui::PopFont();
                 ImGui::SameLine();
                 ImGui::TextUnformatted(db.label.c_str());
+
                 if (dbOpen) {
-                    // schema
                     for (auto &schema: db.children) {
-                        auto schemaId = std::format("##schema{}{}", db.label, schema.label);
-                        const bool schemaOpen = ImGui::TreeNodeEx(schemaId.c_str(), baseFlags);
+                        ImGui::PushID(schema.label.c_str());
+                        const bool schemaOpen = ImGui::TreeNodeEx("##n", baseFlags);
                         ImGui::SameLine();
                         ImGui::PushFont(nullptr, iconSize);
                         ImGui::TextColored(style::kIconSchema, ICON_FA_LAYER_GROUP);
@@ -71,60 +78,61 @@ void ui::SideBar::Draw(const std::function<void(const std::string &, const std::
                         ImGui::TextUnformatted(schema.label.c_str());
 
                         if (schemaOpen) {
-                            // group table folder
-                            const bool groupTablesOpen = ImGui::TreeNodeEx("##tables", baseFlags);
+                            // --- Tables group ---
+                            ImGui::PushID("tables");
+                            const bool tablesOpen = ImGui::TreeNodeEx("##n", baseFlags);
                             ImGui::SameLine();
                             ImGui::PushFont(nullptr, iconSize);
                             ImGui::TextColored(style::kIconGroup, ICON_FA_TABLE_LIST);
                             ImGui::PopFont();
                             ImGui::SameLine();
                             ImGui::TextUnformatted("Tables");
-
-                            if (groupTablesOpen) {
+                            if (tablesOpen) {
                                 for (auto &table: schema.children) {
                                     if (table.type != services::NodeType::Table) continue;
-                                    auto tableId = std::format("##table{}", table.label);
+                                    ImGui::PushID(table.label.c_str());
                                     auto tmpFlags = leafFlags;
-                                    if (tableId == m_selectedKey) {
+                                    if (keyMatches(m_selectedKey, 't', table.label))
                                         tmpFlags |= ImGuiTreeNodeFlags_Selected;
-                                    }
-                                    ImGui::TreeNodeEx(tableId.c_str(), tmpFlags);
+                                    ImGui::TreeNodeEx("##n", tmpFlags);
                                     if (ImGui::IsItemClicked()) {
-                                        m_selectedKey = tableId;
+                                        m_selectedKey = "t:";
+                                        m_selectedKey += table.label;
                                     }
-                                    if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+                                    if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
                                         onOpenTable(schema.label, table.label);
-                                    }
                                     ImGui::SameLine();
                                     ImGui::PushFont(nullptr, iconSize);
                                     ImGui::TextColored(style::kIconTable, ICON_FA_TABLE);
                                     ImGui::PopFont();
                                     ImGui::SameLine();
                                     ImGui::TextUnformatted(table.label.c_str());
+                                    ImGui::PopID();
                                 }
-
                                 ImGui::TreePop();
                             }
+                            ImGui::PopID(); // "tables"
 
-                            const bool viewGroupOpen = ImGui::TreeNodeEx("##views", baseFlags);
+                            // --- Views group ---
+                            ImGui::PushID("views");
+                            const bool viewsOpen = ImGui::TreeNodeEx("##n", baseFlags);
                             ImGui::SameLine();
                             ImGui::PushFont(nullptr, iconSize);
                             ImGui::TextColored(style::kIconGroup, ICON_FA_TABLE_COLUMNS);
                             ImGui::PopFont();
                             ImGui::SameLine();
                             ImGui::TextUnformatted("Views");
-
-                            if (viewGroupOpen) {
+                            if (viewsOpen) {
                                 for (auto &view: schema.children) {
                                     if (view.type != services::NodeType::View) continue;
-                                    auto viewId = std::format("##view{}", view.label);
+                                    ImGui::PushID(view.label.c_str());
                                     auto tmpFlags = leafFlags;
-                                    if (viewId == m_selectedKey) {
+                                    if (keyMatches(m_selectedKey, 'v', view.label))
                                         tmpFlags |= ImGuiTreeNodeFlags_Selected;
-                                    }
-                                    ImGui::TreeNodeEx(viewId.c_str(), tmpFlags);
+                                    ImGui::TreeNodeEx("##n", tmpFlags);
                                     if (ImGui::IsItemClicked()) {
-                                        m_selectedKey = viewId;
+                                        m_selectedKey = "v:";
+                                        m_selectedKey += view.label;
                                     }
                                     ImGui::SameLine();
                                     ImGui::PushFont(nullptr, iconSize);
@@ -132,30 +140,32 @@ void ui::SideBar::Draw(const std::function<void(const std::string &, const std::
                                     ImGui::PopFont();
                                     ImGui::SameLine();
                                     ImGui::TextUnformatted(view.label.c_str());
+                                    ImGui::PopID();
                                 }
                                 ImGui::TreePop();
                             }
+                            ImGui::PopID(); // "views"
 
-                            const bool functionGroupOpen = ImGui::TreeNodeEx("##functions", baseFlags);
-
+                            // --- Functions group ---
+                            ImGui::PushID("functions");
+                            const bool funcsOpen = ImGui::TreeNodeEx("##n", baseFlags);
                             ImGui::SameLine();
                             ImGui::PushFont(nullptr, iconSize);
                             ImGui::TextColored(style::kIconGroup, ICON_FA_GEARS);
                             ImGui::PopFont();
                             ImGui::SameLine();
                             ImGui::TextUnformatted("Functions");
-
-                            if (functionGroupOpen) {
+                            if (funcsOpen) {
                                 for (auto &func: schema.children) {
                                     if (func.type != services::NodeType::Function) continue;
-                                    auto funcId = std::format("##function{}", func.label);
+                                    ImGui::PushID(func.label.c_str());
                                     auto tmpFlags = leafFlags;
-                                    if (funcId == m_selectedKey) {
+                                    if (keyMatches(m_selectedKey, 'f', func.label))
                                         tmpFlags |= ImGuiTreeNodeFlags_Selected;
-                                    }
-                                    ImGui::TreeNodeEx(funcId.c_str(), tmpFlags);
+                                    ImGui::TreeNodeEx("##n", tmpFlags);
                                     if (ImGui::IsItemClicked()) {
-                                        m_selectedKey = funcId;
+                                        m_selectedKey = "f:";
+                                        m_selectedKey += func.label;
                                     }
                                     ImGui::SameLine();
                                     ImGui::PushFont(nullptr, iconSize);
@@ -163,20 +173,23 @@ void ui::SideBar::Draw(const std::function<void(const std::string &, const std::
                                     ImGui::PopFont();
                                     ImGui::SameLine();
                                     ImGui::TextUnformatted(func.label.c_str());
+                                    ImGui::PopID();
                                 }
-
                                 ImGui::TreePop();
                             }
-                            ImGui::TreePop();
+                            ImGui::PopID(); // "functions"
+
+                            ImGui::TreePop(); // schema content
                         }
+                        ImGui::PopID(); // schema label
                     }
-
-                    ImGui::TreePop();
+                    ImGui::TreePop(); // db content
                 }
+                ImGui::PopID(); // db label
             }
-
-            ImGui::TreePop();
+            ImGui::TreePop(); // server content
         }
+        ImGui::PopID(); // server label
     }
     ImGui::PopStyleVar();
 

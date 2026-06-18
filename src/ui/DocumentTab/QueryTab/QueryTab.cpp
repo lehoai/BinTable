@@ -9,18 +9,16 @@
 #include "IconsFontAwesome6.h"
 #include "ui/Controls.h"
 #include "ui/TableView/ResultsTable.h"
+#include "misc/cpp/imgui_stdlib.h"
 
-constexpr size_t kQueryBufferSize = 8192;
+// TODO: hard code
+static const std::vector<std::string> connectionList = {"Postgres - Prod", "Mysql - Stg"};
 
-void ui::QueryTab::DrawQueryTab(DocumentData &tab, bool canRun, const std::function<void(DocumentData &)> &onRun) {
-    std::vector buf(kQueryBufferSize, '\0');
-    const size_t copyLen = std::min(tab.queryText.size(), kQueryBufferSize - 1);
-    std::copy_n(tab.queryText.begin(), copyLen, buf.begin());
-
+void ui::QueryTab::DrawQueryTab(DocumentData &tab, const bool canRun,
+                                const std::function<void(DocumentData &)> &onRun) {
     ImGui::BeginDisabled(!canRun);
-    auto selectedIndex = 0;
     ImGui::PushItemWidth(controls::getDpiSize(250.0f));
-    controls::Combo("##openingConnection", {"Postgres - Prod", "Mysql - Stg"}, selectedIndex, ImVec2(8, 6));
+    controls::Combo("##openingConnection", connectionList, m_selectedConnectionIndex, ImVec2(8, 6));
     ImGui::SameLine();
     if (controls::IconButton("Run (Ctrl+Enter)", ICON_FA_PLAY, style::kToolbarConnect))
         onRun(tab);
@@ -44,8 +42,7 @@ void ui::QueryTab::DrawQueryTab(DocumentData &tab, bool canRun, const std::funct
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
     ImGui::PushStyleColor(ImGuiCol_FrameBg, style::kBgTransparent);
     ImGui::PushStyleColor(ImGuiCol_Border, ImGui::GetStyle().Colors[ImGuiCol_Separator]);
-    if (ImGui::InputTextMultiline("##query", buf.data(), buf.size(), ImVec2(-1, 150)))
-        tab.queryText.assign(buf.data());
+    ImGui::InputTextMultiline("##query", &tab.queryText, ImVec2(-1, 150));
     ImGui::PopStyleVar(1);
     ImGui::PopStyleColor(2);
 
@@ -64,9 +61,6 @@ void ui::QueryTab::DrawQueryTab(DocumentData &tab, bool canRun, const std::funct
     ImGui::PushStyleColor(ImGuiCol_Tab, style::kBgTransparent);
     ImGui::PushStyleColor(ImGuiCol_TabActive, style::kBtnHoverBg);
     ImGui::PushStyleColor(ImGuiCol_TabHovered, style::kBtnHoverBg); // hover
-
-    ImGui::PopStyleVar(3);
-    ImGui::PopStyleColor(3);
 
     if (ImGui::BeginTabBar("##ResultTabs", ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_FittingPolicyScroll)) {
         ImGuiTabItemFlags tabFlags = ImGuiTabItemFlags_None;
@@ -92,4 +86,7 @@ void ui::QueryTab::DrawQueryTab(DocumentData &tab, bool canRun, const std::funct
 
         ImGui::EndTabBar();
     }
+
+    ImGui::PopStyleVar(3);
+    ImGui::PopStyleColor(3);
 }

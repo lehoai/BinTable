@@ -5,7 +5,7 @@
 #include "ui/dark_style.h"
 #include "misc/cpp/imgui_stdlib.h"
 
-inline float ui::controls::getDpiSize(const float size) {
+float ui::controls::getDpiSize(const float size) {
     const float scale = ImGui::GetStyle().FontScaleDpi;
     return size * scale;
 }

@@ -6,6 +6,7 @@
 
 #include "IconsFontAwesome6.h"
 #include "imgui.h"
+#include "misc/cpp/imgui_stdlib.h"
 #include "ui/Controls.h"
 #include "ui/TableView/ResultsTable.h"
 
@@ -171,7 +172,7 @@ void ui::TableViewTab::buildConstraints(float width, float height) {
     ImGui::PushStyleColor(ImGuiCol_HeaderHovered, style::kBtnHoverBg);
     ImGui::PushStyleColor(ImGuiCol_HeaderActive, style::kBtnHeldBg);
 
-    if (ImGui::BeginTable("#schemas", 4, flags, ImVec2(width, height))) {
+    if (ImGui::BeginTable("#contrains", 4, flags, ImVec2(width, height))) {
         ImGui::TableSetupColumn("NAME");
         ImGui::TableSetupColumn("TYPE");
         ImGui::TableSetupColumn("COLUMN");
@@ -196,7 +197,7 @@ void ui::TableViewTab::buildIndexes(float width, float height) {
     ImGui::PushStyleColor(ImGuiCol_HeaderHovered, style::kBtnHoverBg);
     ImGui::PushStyleColor(ImGuiCol_HeaderActive, style::kBtnHeldBg);
 
-    if (ImGui::BeginTable("#schemas", 4, flags, ImVec2(width, height))) {
+    if (ImGui::BeginTable("#indexes", 4, flags, ImVec2(width, height))) {
         ImGui::TableSetupColumn("NAME");
         ImGui::TableSetupColumn("COLUMNS");
         ImGui::TableSetupColumn("UNIQUE");
@@ -216,7 +217,7 @@ void ui::TableViewTab::buildDSL(float width, float height) {
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
     ImGui::PushStyleColor(ImGuiCol_FrameBg, style::kBgTransparent);
     ImGui::PushStyleColor(ImGuiCol_Border, ImGui::GetStyle().Colors[ImGuiCol_Separator]);
-    if (ImGui::InputTextMultiline("##query", m_dslText.data(), m_dslText.size(), ImVec2(-1, 150))) {
+    if (ImGui::InputTextMultiline("##query", &m_dslText, ImVec2(-1, 150))) {
     }
     ImGui::PopStyleVar(1);
     ImGui::PopStyleColor(2);

@@ -100,29 +100,43 @@ int main(int, char **) {
 
     app::Application application;
 
-    // Main loop
-    bool done = false;
-    while (!done) {
-        // WaitEvent blocks until an OS event arrives.  After processing real
-        // input we push one SDL_EVENT_USER so ImGui gets a second frame to
-        // reflect state changes (popup close, button press, etc.).  We do NOT
-        // push another event when the frame was itself triggered by that
-        // sentinel, so the loop actually blocks when the UI is idle.
-        SDL_Event event;
-        SDL_WaitEvent(&event);
+    // Number of frames still owed before the loop is allowed to block again.
+    // ImGui settles some widgets over several frames (tab bars only lay out
+    // their strip the frame after the tabs are submitted, auto-resize windows
+    // and stretch tables behave the same), so after any input - and at startup -
+    // we render a short burst back-to-back, then go back to blocking on
+    // SDL_WaitEvent once the UI is idle. This keeps the app at ~0% CPU when idle
+    // while guaranteeing nested tab bars get the frames they need to appear.
+    constexpr int kSettleFrames = 3;
+    int framesToRender = kSettleFrames;
 
-        bool hadRealEvent = false;
-        do {
-            ImGui_ImplSDL3_ProcessEvent(&event);
-            if (event.type == SDL_EVENT_QUIT) done = true;
-            if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED && event.window.windowID == SDL_GetWindowID(window))
-                done = true;
-            if (event.type == SDL_EVENT_WINDOW_DISPLAY_CHANGED) {
-                ApplyDpiScale(SDL_GetWindowDisplayScale(window));
-            }
-            if (event.type != SDL_EVENT_USER)
-                hadRealEvent = true;
-        } while (SDL_PollEvent(&event));
+    bool done = false;
+
+    auto handleEvent = [&](const SDL_Event &event) {
+        ImGui_ImplSDL3_ProcessEvent(&event);
+        if (event.type == SDL_EVENT_QUIT)
+            done = true;
+        if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED && event.window.windowID == SDL_GetWindowID(window))
+            done = true;
+        if (event.type == SDL_EVENT_WINDOW_DISPLAY_CHANGED)
+            ApplyDpiScale(SDL_GetWindowDisplayScale(window));
+        framesToRender = kSettleFrames;
+    };
+
+    // Main loop
+    while (!done) {
+        // Block only when the UI has settled (no frames owed). Any event resets
+        // the counter so we render a fresh burst.
+        if (framesToRender <= 0) {
+            SDL_Event event;
+            SDL_WaitEvent(&event);
+            handleEvent(event);
+        }
+
+        // Drain anything else already queued (mouse moves, resizes, etc.).
+        SDL_Event event;
+        while (SDL_PollEvent(&event))
+            handleEvent(event);
 
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
@@ -142,15 +156,7 @@ int main(int, char **) {
 
         SDL_GL_SwapWindow(window);
 
-        // Push a follow-up frame only when real input arrived this iteration,
-        // so ImGui can finalise state changes.  Skipping this for the sentinel
-        // frame itself breaks the render loop and lets WaitEvent block.
-        if (hadRealEvent) {
-            SDL_Event wake;
-            SDL_zero(wake);
-            wake.type = SDL_EVENT_USER;
-            SDL_PushEvent(&wake);
-        }
+        --framesToRender;
     }
 
     // Cleanup

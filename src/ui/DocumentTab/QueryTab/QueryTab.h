@@ -12,5 +12,6 @@ namespace ui {
 
     private:
         TableView m_tableView;
+        int m_selectedConnectionIndex = 0;
     };
 }
