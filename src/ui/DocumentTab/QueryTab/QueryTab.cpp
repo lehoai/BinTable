@@ -57,5 +57,39 @@ void ui::QueryTab::DrawQueryTab(DocumentData &tab, bool canRun, const std::funct
     ImGui::Separator();
 
     const ImVec2 avail = ImGui::GetContentRegionAvail();
-    m_tableView.DrawQueryResultTable(tab.result, "##results", avail.x, avail.y);
+
+    ImGui::PushStyleVar(ImGuiStyleVar_TabRounding, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(12, ui::controls::getDpiSize(6)));
+    ImGui::PushStyleVar(ImGuiStyleVar_TabBorderSize, 1.0f);
+    ImGui::PushStyleColor(ImGuiCol_Tab, style::kBgTransparent);
+    ImGui::PushStyleColor(ImGuiCol_TabActive, style::kBtnHoverBg);
+    ImGui::PushStyleColor(ImGuiCol_TabHovered, style::kBtnHoverBg); // hover
+
+    ImGui::PopStyleVar(3);
+    ImGui::PopStyleColor(3);
+
+    if (ImGui::BeginTabBar("##ResultTabs", ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_FittingPolicyScroll)) {
+        ImGuiTabItemFlags tabFlags = ImGuiTabItemFlags_None;
+
+        if (tab.focusRequested) {
+            tabFlags |= ImGuiTabItemFlags_SetSelected;
+            tab.focusRequested = false;
+        }
+
+        if (ImGui::BeginTabItem("Result Data", &tab.open, tabFlags)) {
+            m_tableView.DrawQueryResultTable(tab.result, "##results", avail.x, avail.y);
+
+            ImGui::EndTabItem();
+        }
+
+        if (ImGui::BeginTabItem("Message", &tab.open, tabFlags)) {
+            ImGui::EndTabItem();
+        }
+
+        if (ImGui::BeginTabItem("Execution Plan", &tab.open, tabFlags)) {
+            ImGui::EndTabItem();
+        }
+
+        ImGui::EndTabBar();
+    }
 }

@@ -33,4 +33,5 @@ namespace ui::style {
     constexpr ImU32 kToolbarExport = IM_COL32(181, 139, 212, 255);
 
     constexpr ImVec4 kBgTransparent{0, 0, 0, 0};
+    constexpr ImVec4 kBgDefault {0.06f, 0.06f, 0.06f, 0.94f};
 }

@@ -29,8 +29,8 @@ namespace ui {
         ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
         // custom style popup
-        ImGui::PushStyleColor(ImGuiCol_TitleBg, style::kBgTransparent);
-        ImGui::PushStyleColor(ImGuiCol_TitleBgActive, style::kBgTransparent);
+        ImGui::PushStyleColor(ImGuiCol_TitleBg, style::kBgDefault);
+        ImGui::PushStyleColor(ImGuiCol_TitleBgActive, style::kBgDefault);
 
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8.0f, 12.0f));
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f, 0.0f));

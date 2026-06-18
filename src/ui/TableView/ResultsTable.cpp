@@ -6,6 +6,7 @@
 #include "imgui_internal.h"
 #include <imgui.h>
 
+#include "IconsFontAwesome6.h"
 #include "../Controls.h"
 
 namespace ui {
@@ -46,7 +47,7 @@ namespace ui {
 
         // ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(8.0f, 3.0f));
 
-        if (ImGui::BeginTable(tableId, static_cast<int>(result.ColumnCount()), flags, ImVec2(width, height))) {
+        if (ImGui::BeginTable(tableId, static_cast<int>(result.ColumnCount()), flags)) {
             for (const auto &column: result.columns)
                 ImGui::TableSetupColumn(column.c_str());
 
