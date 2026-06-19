@@ -12,10 +12,11 @@
 namespace app {
     Application::Application() {
         AddQueryTab();
-        OpenTableTab("public", "orders");
     }
 
     void Application::RenderUI() {
+        m_sessionService.Poll();
+
         const ImGuiViewport *viewport = ImGui::GetMainViewport();
         ImGui::SetNextWindowPos(viewport->WorkPos);
         ImGui::SetNextWindowSize(viewport->WorkSize);
@@ -26,14 +27,15 @@ namespace app {
                                                | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoSavedSettings;
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-        ImGui::Begin("##amgui_main", nullptr, hostFlags);
+        ImGui::Begin("##bintable_main", nullptr, hostFlags);
         ImGui::PopStyleVar();
 
         DrawToolbar();
         ImGui::Separator();
 
-        m_sideBar.Draw([this](const std::string &schema, const std::string &table) {
-            OpenTableTab(schema, table);
+        m_sideBar.Draw([this](const int sessionId, const std::string &schema, const std::string &table) {
+            m_currentSessionId = sessionId;
+            OpenTableTab(sessionId, schema, table);
         });
 
         ImGui::SameLine();
@@ -56,10 +58,8 @@ namespace app {
 
         if (const auto [action, config] = m_connectionPopup.Draw(); action == ui::PopupAction::Save) {
             // TODO: save to disk
-            if (const int id = m_connections.OpenSession(config); id != -1) {
-                m_activeSessionId = id;
-                RefreshSchema();
-            }
+            m_sessionService.SaveProfile(config);
+            m_sessionService.ConnectAsync(config);
         }
     }
 
@@ -151,17 +151,17 @@ namespace app {
     //     }
     // }
 
-    void Application::DrawSchemaPanel() const {
+    void Application::DrawSchemaPanel() {
         ImGui::TextUnformatted("Schema");
         ImGui::Separator();
 
-        if (m_selectedTable.empty()) {
-            ImGui::TextDisabled("Select a table to inspect its columns");
-            return;
-        }
+        // if (m_selectedTable.empty()) {
+        //     ImGui::TextDisabled("Select a table to inspect its columns");
+        //     return;
+        // }
 
-        ImGui::TextUnformatted((m_selectedSchema + "." + m_selectedTable).c_str());
-        ImGui::Separator();
+        // ImGui::TextUnformatted((m_selectedSchema + "." + m_selectedTable).c_str());
+        // ImGui::Separator();
 
         // for (auto &schema: m_schemas) {
         //     if (schema.name != m_selectedSchema)
@@ -297,6 +297,7 @@ namespace app {
 
     void Application::AddQueryTab() {
         ui::DocumentData tab;
+        tab.connectionId = m_currentSessionId;
         tab.type = ui::DocumentType::Query;
         tab.id = m_nextTabId++;
         tab.title = "Query " + std::to_string(tab.id);
@@ -326,20 +327,21 @@ namespace app {
         };
         tab.result.success = true;
         tab.result.columns = {
-            "id " ICON_FA_KEY, "username", "email", "role", "created_at", "is_active", "age", "balance"
+            "id ", "username", "email", "role", "created_at", "is_active", "age", "balance"
         };
         m_tabs.push_back(std::move(tab));
     }
 
-    void Application::OpenTableTab(const std::string &schemaName, const std::string &tableName) {
+    void Application::OpenTableTab(const int sessionId, const std::string &schemaName, const std::string &tableName) {
         for (auto &tab: m_tabs) {
-            if (tab.type == ui::DocumentType::TableView && tab.schemaName == schemaName && tab.tableName == tableName) {
+            if (tab.type == ui::DocumentType::TableView && tab.schemaName == schemaName && tab.tableName == tableName && tab.connectionId == sessionId) {
                 tab.focusRequested = true;
                 return;
             }
         }
 
         ui::DocumentData tab;
+        tab.connectionId = sessionId;
         tab.type = ui::DocumentType::TableView;
         tab.id = m_nextTabId++;
         tab.title = schemaName + "." + tableName;
@@ -350,7 +352,7 @@ namespace app {
         // TODO: remove fake data when real query is ready
         tab.result.success = true;
         tab.result.columns = {
-            "id " ICON_FA_KEY, "username", "email", "role", "created_at", "is_active", "age", "balance"
+            "id ", "username", "email", "role", "created_at", "is_active", "age", "balance"
         };
         tab.result.rows = {
             {"1", "alice", "alice@example.com", "admin", "2024-01-15 09:00:00", "true", "28", "1500.00"},
@@ -381,25 +383,15 @@ namespace app {
     }
 
     void Application::RunQueryTab(ui::DocumentData &tab) {
-        const db::ConnectionSession *s = m_connections.Find(tab.connectionId);
-        if (!s || !s->IsConnected()) {
-            tab.statusMessage = "No connection";
-            return;
-        }
-        tab.result = s->connection->Execute(tab.queryText);
+        tab.result = m_sessionService.Execute(tab.connectionId, tab.queryText);
         tab.statusMessage = tab.result.success
                                 ? ("OK - " + std::to_string(tab.result.RowCount()) + " row(s)")
                                 : tab.result.error;
     }
 
     void Application::RunTableTab(ui::DocumentData &tab) {
-        const db::ConnectionSession *s = m_connections.Find(tab.connectionId);
-        if (!s || !s->IsConnected()) {
-            tab.statusMessage = "No connection";
-            return;
-        }
         const std::string sql = "SELECT * FROM \"" + tab.schemaName + "\".\"" + tab.tableName + "\" LIMIT 200;";
-        tab.result = s->connection->Execute(sql);
+        tab.result = m_sessionService.Execute(tab.connectionId, sql);
         tab.statusMessage = tab.result.success
                                 ? (std::to_string(tab.result.RowCount()) + " row(s)")
                                 : tab.result.error;

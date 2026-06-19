@@ -97,7 +97,7 @@ cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --parallel
 ```
 
-The `amgui` executable and `assets/` directory will be placed in the build output folder.
+The `bintable` executable and `assets/` directory will be placed in the build output folder.
 
 #### Linux — one-liner
 

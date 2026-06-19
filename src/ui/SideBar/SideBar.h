@@ -2,19 +2,21 @@
 
 #include <string>
 #include <functional>
-#include "services/ConnectionService.h"
+#include "services/SessionService.h"
 
 namespace ui {
+    using OpenTabFn = std::function<void(int, const std::string &, const std::string &)>;
+
     class SideBar {
     public:
-        SideBar();
+        explicit SideBar(services::SessionService &service) : m_service(service) {
+        };
 
-        void Draw(const std::function<void(const std::string &, const std::string &)> &onOpenTable);
+        void Draw(const OpenTabFn &onOpenTable);
 
     private:
         std::string m_filterText;
         std::string m_selectedKey;
-        services::ConnectionService m_connService;
-        std::vector<services::TreeNode> m_treeNodes;
+        services::SessionService &m_service;
     };
 }

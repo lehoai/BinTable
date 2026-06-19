@@ -1,5 +1,5 @@
 #include "ui/NewConnectionPopup.h"
-#include "db/ConnectionFactory.h"
+#include "services/SessionService.h"
 
 #include "Controls.h"
 #include <imgui.h>
@@ -12,7 +12,6 @@ namespace ui {
         m_pendingOpen = true;
         m_isOpen = true;
         m_statusMessage.clear();
-        m_isTesting = false;
     }
 
     PopupResult NewConnectionPopup::Draw() {
@@ -45,16 +44,9 @@ namespace ui {
             if (!m_isOpen) {
                 ImGui::CloseCurrentPopup();
             }
-            if (m_isTesting) {
-                if (m_future.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
-                    auto [success, message] = m_future.get();
-                    m_isTesting = false;
-                    m_statusMessage = message;
-                    // if (success) {
-                    //     ImGui::CloseCurrentPopup();
-                    //     justConnected = true;
-                    // }
-                }
+
+            if (const auto r = m_service.PollTestResult()) {
+                m_statusMessage = r->message;
             }
 
             ImGui::PushItemWidth(controls::getDpiSize(350.0f));
@@ -64,6 +56,7 @@ namespace ui {
             ImGui::Separator();
 
             controls::Combo("Database Type", {"Postgresql", "MariaDb", "Sqlite"}, m_dbTypeIndex);
+            m_config.dbType = static_cast<db::DbType>(m_dbTypeIndex);
             controls::InputText("Connection Name", m_config.connectionName, "Your easy to remember name");
             controls::InputText("Host", m_config.host, "Database server address");
             controls::InputText("Port", m_config.port, "Database server listening port");
@@ -85,10 +78,11 @@ namespace ui {
             // drawing anything (GetContentRegionAvail() shrinks as the cursor moves).
             const float rightEdge = ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x;
 
-            ImGui::BeginDisabled(m_isTesting);
-            if (controls::IconButton(m_isTesting ? "Connecting...##test" : "Test Connection",ICON_FA_PLUG_CIRCLE_CHECK,
+            ImGui::BeginDisabled(m_service.IsTesting());
+            if (controls::IconButton(m_service.IsTesting() ? "Connecting..." : "Test Connection",
+                                     ICON_FA_PLUG_CIRCLE_CHECK,
                                      style::kToolbarConnect)) {
-                StartTest();
+                m_service.TestAsync(m_config);
             }
             ImGui::EndDisabled();
 
@@ -101,8 +95,9 @@ namespace ui {
                 ImGui::CloseCurrentPopup();
 
             ImGui::SameLine();
-            ImGui::BeginDisabled(m_isTesting);
-            if (controls::IconButton(m_isTesting ? "Connecting...##save" : "Save Connection",ICON_FA_FLOPPY_DISK,
+            ImGui::BeginDisabled(m_service.IsTesting());
+            if (controls::IconButton(m_service.IsTesting() ? "Connecting..." : "Save Connection",
+                                     ICON_FA_FLOPPY_DISK,
                                      style::kToolbarSave, kSaveWidth)) {
                 result.action = PopupAction::Save;
                 result.config = m_config;
@@ -117,24 +112,5 @@ namespace ui {
         }
 
         return result;
-    }
-
-    void NewConnectionPopup::StartTest() {
-        m_isTesting = true;
-        db::ConnectionConfig config = m_config;
-        int dbIndexType = m_dbTypeIndex;
-        m_future = std::async(std::launch::async, [config, dbIndexType]() {
-            TestConnectionResult result;
-            const auto dbType = static_cast<db::DbType>(dbIndexType);
-            const auto conn = db::CreateConnection(dbType);
-            if (!conn) {
-                result.message = "Unsupported connection type";
-                return result;
-            }
-
-            result.success = conn->Connect(config);
-            result.message = result.success ? "Connected" : conn->LastError();
-            return result;
-        });
     }
 } // namespace ui

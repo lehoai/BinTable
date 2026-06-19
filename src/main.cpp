@@ -7,6 +7,7 @@
 #include "app/Application.h"
 #include "IconsFontAwesome6.h"
 #include "imgui_freetype.h"
+#include "ui/dark_style.h"
 
 // Rebuild the style from scratch and re-apply DPI scaling, so the UI matches whichever
 // monitor the window currently lives on (handles dragging the window between displays
@@ -18,7 +19,8 @@ static void ApplyDpiScale(const float scale) {
 
     // custom style
     ImGuiStyle& guiStyle = ImGui::GetStyle();
-    guiStyle.Colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0, 0, 0, 0);
+    guiStyle.Colors[ImGuiCol_ModalWindowDimBg] = ui::style::kBgTransparent;
+    guiStyle.Colors[ImGuiCol_PopupBg] = ui::style::kBgDefault;
     // guiStyle.Colors[ImGuiCol_Button] = ImVec4(0,0,0,0);
     // guiStyle.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.10f, 0.13f, 0.17f, 1.0f);
 

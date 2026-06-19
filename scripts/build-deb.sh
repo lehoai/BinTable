@@ -26,7 +26,7 @@ exec /usr/share/bintable/bintable-bin "$@"
 WRAPPER
 chmod 755 ${PKG_DIR}/usr/bin/${APP}
 
-cp ${BUILD_DIR}/amgui ${PKG_DIR}/usr/share/${APP}/bintable-bin
+cp ${BUILD_DIR}/bintable ${PKG_DIR}/usr/share/${APP}/bintable-bin
 chmod 755 ${PKG_DIR}/usr/share/${APP}/bintable-bin
 
 cp assets/fonts/DejaVuSansMono.ttf    ${PKG_DIR}/usr/share/${APP}/assets/fonts/
@@ -34,7 +34,7 @@ cp assets/fonts/NotoMonoJP-subset.ttf ${PKG_DIR}/usr/share/${APP}/assets/fonts/
 
 echo "==> Writing control file..."
 INSTALLED_SIZE=$(du -sk ${PKG_DIR}/usr | cut -f1)
-DEPS=$(ldd ${BUILD_DIR}/amgui \
+DEPS=$(ldd ${BUILD_DIR}/bintable \
   | awk '/libpq/{print "libpq5"} /libGL/{print "libgl1"}' \
   | sort -u | paste -sd ', ')
 

@@ -1,17 +1,15 @@
 #pragma once
 
-#include "db/IConnection.h"
-#include "db/SchemaInfo.h"
 #include <string>
 #include <vector>
 
-#include "db/ConnectionManager.h"
+#include "db/IConnection.h"
+#include "db/SchemaInfo.h"
 #include "ui/NewConnectionPopup.h"
 #include "ui/SideBar/SideBar.h"
 #include "../ui/DocumentTab/DocumentTab.h"
 
 namespace app {
-
     class Application {
     public:
         Application();
@@ -19,34 +17,30 @@ namespace app {
         void RenderUI();
 
     private:
-        void RefreshSchema();
+        static void RefreshSchema();
 
         static void LoadTableColumns(db::IConnection &conn, db::TableInfo &table);
 
         void DrawToolbar();
 
-        void DrawSchemaPanel() const;
+        static void DrawSchemaPanel();
 
         void AddQueryTab();
 
-        void OpenTableTab(const std::string &schemaName, const std::string &tableName);
+        void OpenTableTab(int sessionId, const std::string &schemaName, const std::string &tableName);
 
         void RunQueryTab(ui::DocumentData &tab);
 
         void RunTableTab(ui::DocumentData &tab);
 
         // ========================== services =========================
-        db::ConnectionManager m_connections;
-        int m_activeSessionId = -1;
+        services::SessionService m_sessionService;
+        int m_currentSessionId = -1; // UI state
 
         // ========================== child UI =========================
-        ui::NewConnectionPopup m_connectionPopup;
-        ui::SideBar m_sideBar;
+        ui::NewConnectionPopup m_connectionPopup{m_sessionService};
+        ui::SideBar m_sideBar{m_sessionService};
         ui::DocumentTab m_documentTab;
-
-        // ========================== state =========================
-        std::string m_selectedSchema;
-        std::string m_selectedTable;
 
         std::vector<ui::DocumentData> m_tabs;
         int m_nextTabId = 1;

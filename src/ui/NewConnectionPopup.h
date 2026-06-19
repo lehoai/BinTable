@@ -1,15 +1,13 @@
 #pragma once
 
 #include "db/ConnectionConfig.h"
-#include <future>
 #include <string>
 
-namespace ui {
-    struct TestConnectionResult {
-        bool success = false;
-        std::string message;
-    };
+namespace services {
+    class SessionService;
+}
 
+namespace ui {
     enum class PopupAction { None, Save };
 
     struct PopupResult {
@@ -19,21 +17,18 @@ namespace ui {
 
     class NewConnectionPopup {
     public:
+        explicit NewConnectionPopup(services::SessionService &sessionService) : m_service(sessionService) {}
+
         void open();
 
         PopupResult Draw();
 
     private:
+        services::SessionService& m_service;
         db::ConnectionConfig m_config;
         int m_dbTypeIndex = 0;
         std::string m_statusMessage;
         bool m_pendingOpen = false;
-
-        bool m_isTesting = false;
-        std::future<TestConnectionResult> m_future;
-
         bool m_isOpen = false;
-
-        void StartTest();
     };
 } // namespace ui
