@@ -50,6 +50,11 @@ namespace services {
 
         [[nodiscard]] bool IsTesting() const { return m_testing; }
 
+        // ---- Metadata query
+        void LoadSchemasAsync(int sessionId, const std::string &dbName);
+
+        void LoadTablesAsync(int sessionId, const std::string &dbName, const std::string &schemaName);
+
         db::QueryResult Execute(int sessionId, const std::string &sql);
 
     private:
@@ -60,9 +65,34 @@ namespace services {
             std::vector<db::DatabaseInfo> databases;
         };
 
-        struct Pending {
+        struct ConnectPending {
             int sessionId = 0;
             std::future<ConnectOutcome> future;
+        };
+
+        struct SchemaOutcome {
+            bool ok = false;
+            std::string error;
+            std::vector<db::SchemaInfo> schemas;
+        };
+
+        struct SchemaPending {
+            int sessionId = 0;
+            std::string dbName;
+            std::future<SchemaOutcome> future;
+        };
+
+        struct TableOutcome {
+            bool ok = false;
+            std::string error;
+            std::vector<db::TableInfo> tables;
+        };
+
+        struct TablePending {
+            int sessionId = 0;
+            std::string dbName;
+            std::string schemaName;
+            std::future<TableOutcome> future;
         };
 
         Session *Find(int id);
@@ -71,7 +101,10 @@ namespace services {
         std::vector<Session> m_sessions;
         int m_nextId = 1;
 
-        std::vector<Pending> m_pending;
+        ConnectPending m_connectionPending;
+        SchemaPending m_schemaPending;
+        TablePending m_tablePending;
+
         std::future<TestResult> m_TestFuture;
         bool m_testing = false;
     };

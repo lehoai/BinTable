@@ -62,18 +62,28 @@ void ui::SideBar::Draw(const OpenTabFn &onOpenTable) {
         }
 
         if (serverOpen) {
-            for (const auto &[name, schemas]: session.databases) {
+            for (const auto &[dbName, schemas, schemaState]: session.databases) {
                 // db layer
-                ImGui::PushID(name.c_str());
+                ImGui::PushID(dbName.c_str());
                 const bool dbOpen = ImGui::TreeNodeEx("##n", baseFlags);
                 ImGui::SameLine();
                 ImGui::PushFont(nullptr, iconSize);
                 ImGui::TextColored(style::kIconDatabase, ICON_FA_DATABASE);
                 ImGui::PopFont();
                 ImGui::SameLine();
-                ImGui::TextUnformatted(name.c_str());
+                ImGui::TextUnformatted(dbName.c_str());
 
                 if (dbOpen) {
+                    if (schemaState == db::LoadState::NotLoaded) {
+                        m_service.LoadSchemasAsync(session.id, dbName);
+                    } else if (schemaState == db::LoadState::Loading) {
+                        ImGui::SameLine();
+                        ImGui::TextDisabled("Loading...");
+                    } else if (schemaState == db::LoadState::Failed) {
+                        ImGui::SameLine();
+                        ImGui::TextColored(style::kTextError, "(failed)");
+                    }
+
                     for (auto &schema: schemas) {
                         // schema layer
                         ImGui::PushID(schema.name.c_str());
@@ -96,6 +106,17 @@ void ui::SideBar::Draw(const OpenTabFn &onOpenTable) {
                             ImGui::SameLine();
                             ImGui::TextUnformatted("Tables");
                             if (tablesOpen) {
+
+                                if (schema.tableState == db::LoadState::NotLoaded) {
+                                    m_service.LoadTablesAsync(session.id, dbName, schema.name);
+                                } else if (schemaState == db::LoadState::Loading) {
+                                    ImGui::SameLine();
+                                    ImGui::TextDisabled("Loading...");
+                                } else if (schemaState == db::LoadState::Failed) {
+                                    ImGui::SameLine();
+                                    ImGui::TextColored(style::kTextError, "(failed)");
+                                }
+
                                 for (auto &table: schema.tables) {
                                     // table layer
                                     ImGui::PushID(table.name.c_str());

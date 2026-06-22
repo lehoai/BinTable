@@ -17,6 +17,8 @@ namespace db {
         [[nodiscard]] virtual bool IsConnected() const = 0;
 
         virtual std::vector<std::string> LoadDatabases() = 0;
+        virtual std::vector<std::string> LoadSchemas() = 0;
+        virtual std::vector<std::string> LoadTables(std::string schema) = 0;
 
         virtual QueryResult Execute(const std::string &sql) = 0;
 

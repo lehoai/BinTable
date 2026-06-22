@@ -102,12 +102,8 @@ add_executable(${PROJECT_NAME}
         src/ui/Controls.cpp
         src/db/ConnectionFactory.h
         src/db/ConnectionFactory.cpp
-        src/db/ConnectionManager.cpp
-        src/db/ConnectionManager.h
         src/ui/SideBar/SideBar.cpp
         src/ui/SideBar/SideBar.h
-        src/services/ConnectionService.cpp
-        src/services/ConnectionService.h
         src/ui/dark_style.h
         src/ui/DocumentTab/QueryTab/QueryTab.cpp
         src/ui/DocumentTab/QueryTab/QueryTab.h

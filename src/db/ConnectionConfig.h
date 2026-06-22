@@ -11,7 +11,7 @@ namespace db {
         std::string host = "localhost";
         std::string port = "5432";
         std::string database;
-        std::string user;
-        std::string password;
+        std::string user = "admin";
+        std::string password = "123456";
     };
 } // namespace db

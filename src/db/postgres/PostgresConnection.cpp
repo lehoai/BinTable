@@ -1,5 +1,6 @@
 #include "db/postgres/PostgresConnection.h"
 
+#include <format>
 #include <libpq-fe.h>
 
 #include <sstream>
@@ -86,7 +87,7 @@ namespace db::postgres {
         return m_lastError;
     }
 
-    std::vector<std::string> PostgresConnection::LoadDatabases() {
+    std::vector<std::string> PostgresConnection::loadMeta(const char *sql) {
         std::vector<std::string> result;
 
         if (!IsConnected()) {
@@ -94,10 +95,7 @@ namespace db::postgres {
             return result;
         }
 
-        PGresult *res = PQexec(m_conn,
-                               "SELECT datname FROM pg_database "
-                               "WHERE datistemplate = false ORDER BY datname;"
-        );
+        PGresult *res = PQexec(m_conn, sql);
 
         if (PQresultStatus(res) != PGRES_TUPLES_OK) {
             m_lastError = PQresultErrorMessage(res);
@@ -114,5 +112,28 @@ namespace db::postgres {
         PQclear(res);
 
         return result;
+    }
+
+    std::vector<std::string> PostgresConnection::LoadDatabases() {
+        return loadMeta("SELECT datname FROM pg_database "
+            "WHERE datistemplate = false ORDER BY datname;");
+    }
+
+    std::vector<std::string> PostgresConnection::LoadSchemas() {
+        return loadMeta("SELECT schema_name FROM information_schema.schemata "
+            "WHERE schema_name NOT IN ('pg_catalog', 'information_schema') "
+            "AND schema_name NOT LIKE 'pg_temp%' "
+            "AND schema_name NOT LIKE 'pg_toast%' "
+            "ORDER BY schema_name;");
+    }
+
+    std::vector<std::string> PostgresConnection::LoadTables(std::string schema) {
+        const std::string sql = std::format("SELECT c.relname AS table_name "
+                                      "FROM pg_catalog.pg_class c "
+                                      "JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace "
+                                      "WHERE n.nspname = '{}' "
+                                      "AND c.relkind = 'r' "
+                                      "ORDER BY c.relname;", schema);
+        return loadMeta(sql.c_str());
     }
 } // namespace db::postgres
