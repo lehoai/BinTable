@@ -118,7 +118,8 @@ bool ui::controls::IconButton(const char *label, const char *icon, const ImU32 &
 
 void ui::controls::InputText(const char *label, std::string &value, const char *placeholder, const ImVec2 padding,
                              const ImVec4 bg) {
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, padding);
+    auto dpiPadding = ImVec2(getDpiSize(padding.x), getDpiSize(padding.y));
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, dpiPadding);
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
     ImGui::PushStyleColor(ImGuiCol_FrameBg, bg);
     ImGui::PushStyleColor(ImGuiCol_Border, ImGui::GetStyle().Colors[ImGuiCol_Separator]);

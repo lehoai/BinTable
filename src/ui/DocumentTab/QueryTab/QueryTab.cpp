@@ -42,7 +42,7 @@ void ui::QueryTab::DrawQueryTab(DocumentData &tab, const bool canRun,
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
     ImGui::PushStyleColor(ImGuiCol_FrameBg, style::kBgTransparent);
     ImGui::PushStyleColor(ImGuiCol_Border, ImGui::GetStyle().Colors[ImGuiCol_Separator]);
-    ImGui::InputTextMultiline("##query", &tab.queryText, ImVec2(-1, 150));
+    ImGui::InputTextMultiline("##query", &tab.queryText, ImVec2(-1, 550));
     ImGui::PopStyleVar(1);
     ImGui::PopStyleColor(2);
 
@@ -50,8 +50,6 @@ void ui::QueryTab::DrawQueryTab(DocumentData &tab, const bool canRun,
         ImGui::SameLine();
         ImGui::TextUnformatted(tab.statusMessage.c_str());
     }
-
-    ImGui::Separator();
 
     const ImVec2 avail = ImGui::GetContentRegionAvail();
 

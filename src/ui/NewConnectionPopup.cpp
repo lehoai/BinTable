@@ -30,15 +30,15 @@ namespace ui {
         // custom style popup
         ImGui::PushStyleColor(ImGuiCol_TitleBg, style::kBgDefault);
         ImGui::PushStyleColor(ImGuiCol_TitleBgActive, style::kBgDefault);
+        ImGui::PushStyleColor(ImGuiCol_Border,        ImVec4(0.30f, 0.40f, 0.55f, 1.0f));
 
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8.0f, 12.0f));
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f, 0.0f));
 
-
         const auto isPopupOpen = ImGui::BeginPopupModal(kPopupId, &m_isOpen, ImGuiWindowFlags_AlwaysAutoResize);
 
         ImGui::PopStyleVar(2);
-        ImGui::PopStyleColor(2);
+        ImGui::PopStyleColor(3);
 
         if (isPopupOpen) {
             if (!m_isOpen) {
@@ -96,7 +96,8 @@ namespace ui {
 
             ImGui::SameLine();
             ImGui::BeginDisabled(m_service.IsTesting());
-            if (controls::IconButton(m_service.IsTesting() ? "Connecting..." : "Save Connection",
+
+            if (controls::IconButton("Save Connection",
                                      ICON_FA_FLOPPY_DISK,
                                      style::kToolbarSave, kSaveWidth)) {
                 result.action = PopupAction::Save;

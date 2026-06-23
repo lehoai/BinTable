@@ -34,11 +34,9 @@ void ui::SideBar::Draw(const OpenTabFn &onOpenTable) {
 
     ImGui::PushItemWidth(controls::getDpiSize(225.0f));
 
-    ImGui::TextUnformatted("Database");
-    ImGui::Separator();
-
+    ImGui::TextUnformatted("Navigator");
+    ImGui::Dummy(ImVec2(0.0f, 2.0f));
     controls::InputText("##filter_text", m_filterText, "Search schema, tables...");
-    ImGui::Separator();
 
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 6));
     for (auto &session: m_service.Sessions()) {
@@ -109,10 +107,10 @@ void ui::SideBar::Draw(const OpenTabFn &onOpenTable) {
 
                                 if (schema.tableState == db::LoadState::NotLoaded) {
                                     m_service.LoadTablesAsync(session.id, dbName, schema.name);
-                                } else if (schemaState == db::LoadState::Loading) {
+                                } else if (schema.tableState == db::LoadState::Loading) {
                                     ImGui::SameLine();
                                     ImGui::TextDisabled("Loading...");
-                                } else if (schemaState == db::LoadState::Failed) {
+                                } else if (schema.tableState == db::LoadState::Failed) {
                                     ImGui::SameLine();
                                     ImGui::TextColored(style::kTextError, "(failed)");
                                 }

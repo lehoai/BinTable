@@ -27,11 +27,12 @@ namespace app {
                                                | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoSavedSettings;
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 8.0f));
         ImGui::Begin("##bintable_main", nullptr, hostFlags);
-        ImGui::PopStyleVar();
-
         DrawToolbar();
         ImGui::Separator();
+        ImGui::PopStyleVar(2);
+
 
         m_sideBar.Draw([this](const int sessionId, const std::string &schema, const std::string &table) {
             m_currentSessionId = sessionId;
@@ -39,9 +40,8 @@ namespace app {
         });
 
         ImGui::SameLine();
-
         const float schemaPanelWidth = ui::controls::getDpiSize(300.0f);
-        ImGui::BeginChild("##center", ImVec2(-schemaPanelWidth, 0), ImGuiChildFlags_Borders);
+        ImGui::BeginChild("##center", ImVec2(-schemaPanelWidth, 0));
         m_documentTab.DrawDocumentTabs(m_tabs, true,
                                        [this](ui::DocumentData &tab) { RunQueryTab(tab); },
                                        [this](ui::DocumentData &tab) { RunTableTab(tab); },
@@ -64,6 +64,8 @@ namespace app {
     }
 
     void Application::DrawToolbar() {
+        // ImGui::Dummy(ImVec2(8.0f, 8.0f));
+        // ImGui::SameLine();
         if (ui::controls::IconButton("Connect", ICON_FA_PLUG, ui::style::kToolbarConnect))
             m_connectionPopup.open();
 
@@ -334,7 +336,8 @@ namespace app {
 
     void Application::OpenTableTab(const int sessionId, const std::string &schemaName, const std::string &tableName) {
         for (auto &tab: m_tabs) {
-            if (tab.type == ui::DocumentType::TableView && tab.schemaName == schemaName && tab.tableName == tableName && tab.connectionId == sessionId) {
+            if (tab.type == ui::DocumentType::TableView && tab.schemaName == schemaName && tab.tableName == tableName &&
+                tab.connectionId == sessionId) {
                 tab.focusRequested = true;
                 return;
             }

@@ -179,7 +179,9 @@ void services::SessionService::LoadTablesAsync(const int sessionId, const std::s
 
     if (schema == it->schemas.end() || schema->tableState != db::LoadState::NotLoaded) {
         return;
-    }
+    }   
+
+    schema->tableState = db::LoadState::Loading;
 
     m_tablePending.sessionId = sessionId;
     m_tablePending.dbName = dbName;
