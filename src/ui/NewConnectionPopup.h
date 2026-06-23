@@ -30,5 +30,6 @@ namespace ui {
         std::string m_statusMessage;
         bool m_pendingOpen = false;
         bool m_isOpen = false;
+        bool m_isSave = false;
     };
 } // namespace ui

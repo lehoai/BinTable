@@ -154,9 +154,9 @@ void services::SessionService::LoadSchemasAsync(const int sessionId, const std::
 
     m_schemaPending.sessionId = sessionId;
     m_schemaPending.dbName = dbName;
-    m_schemaPending.future = std::async(std::launch::async, [s] {
+    m_schemaPending.future = std::async(std::launch::async, [conn = s->connection.get()] {
         SchemaOutcome out;
-        for (auto schemas = s->connection->LoadSchemas(); auto &ss: schemas) {
+        for (auto schemas = conn->LoadSchemas(); auto &ss: schemas) {
             out.schemas.emplace_back(std::move(ss));
         }
         out.ok = true;
@@ -179,16 +179,16 @@ void services::SessionService::LoadTablesAsync(const int sessionId, const std::s
 
     if (schema == it->schemas.end() || schema->tableState != db::LoadState::NotLoaded) {
         return;
-    }   
+    }
 
     schema->tableState = db::LoadState::Loading;
 
     m_tablePending.sessionId = sessionId;
     m_tablePending.dbName = dbName;
     m_tablePending.schemaName = schemaName;
-    m_tablePending.future = std::async(std::launch::async, [schemaName, s] {
+    m_tablePending.future = std::async(std::launch::async, [schemaName, conn = s->connection.get()] {
         TableOutcome out;
-        for (auto tables = s->connection->LoadTables(schemaName); auto &ss: tables) {
+        for (auto tables = conn->LoadTables(schemaName); auto &ss: tables) {
             out.tables.emplace_back(schemaName, std::move(ss));
         }
         out.ok = true;

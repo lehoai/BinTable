@@ -30,7 +30,7 @@ namespace ui {
         // custom style popup
         ImGui::PushStyleColor(ImGuiCol_TitleBg, style::kBgDefault);
         ImGui::PushStyleColor(ImGuiCol_TitleBgActive, style::kBgDefault);
-        ImGui::PushStyleColor(ImGuiCol_Border,        ImVec4(0.30f, 0.40f, 0.55f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.30f, 0.40f, 0.55f, 1.0f));
 
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8.0f, 12.0f));
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f, 0.0f));
@@ -46,7 +46,14 @@ namespace ui {
             }
 
             if (const auto r = m_service.PollTestResult()) {
-                m_statusMessage = r->message;
+                if (m_isSave && r->success) {
+                    result.action = PopupAction::Save;
+                    result.config = m_config;
+                    ImGui::CloseCurrentPopup();
+                } else {
+                    m_statusMessage = r->message;
+                    m_isSave = false;
+                }
             }
 
             ImGui::PushItemWidth(controls::getDpiSize(350.0f));
@@ -78,7 +85,7 @@ namespace ui {
             // drawing anything (GetContentRegionAvail() shrinks as the cursor moves).
             const float rightEdge = ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x;
 
-            ImGui::BeginDisabled(m_service.IsTesting());
+            ImGui::BeginDisabled(m_service.IsTesting() || m_isSave);
             if (controls::IconButton(m_service.IsTesting() ? "Connecting..." : "Test Connection",
                                      ICON_FA_PLUG_CIRCLE_CHECK,
                                      style::kToolbarConnect)) {
@@ -95,14 +102,13 @@ namespace ui {
                 ImGui::CloseCurrentPopup();
 
             ImGui::SameLine();
-            ImGui::BeginDisabled(m_service.IsTesting());
+            ImGui::BeginDisabled(m_service.IsTesting() || m_isSave);
 
-            if (controls::IconButton("Save Connection",
+            if (controls::IconButton(m_isSave ? "Saving..." : "Save Connection",
                                      ICON_FA_FLOPPY_DISK,
                                      style::kToolbarSave, kSaveWidth)) {
-                result.action = PopupAction::Save;
-                result.config = m_config;
-                ImGui::CloseCurrentPopup();
+                m_isSave = true;
+                m_service.TestAsync(m_config);
             }
 
             ImGui::EndDisabled();
